@@ -5,10 +5,10 @@ setup(
     version='0.1.1',
     packages=find_packages(),
     install_requires=[
-        # Common dependencies for all sub-packages
+        'ujson'
     ],
     extras_require={
-        'history': ['fastapi', 'uvicorn'],  # Dependencies specific to the history sub-package
+        'history': ['fastapi', 'uvicorn', 'motor', 'pymongo', 'cryptography'],  # Dependencies specific to the history sub-package
         # Add other sub-package specific dependencies here
     },
     author='Ryan Eggleston',
@@ -16,7 +16,7 @@ setup(
     description='A collection of utilities by Prompt Engineers',
     long_description=open('README.md', encoding='utf-8').read(),
     long_description_content_type='text/markdown',
-    url='https://github.com/promptengineers-ai/modules',
+    url='https://github.com/promptengineers-ai/core',
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
