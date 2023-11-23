@@ -8,8 +8,8 @@ setup(
         'ujson'
     ],
     extras_require={
-        'history': ['fastapi', 'uvicorn', 'motor', 'pymongo', 'cryptography'],  # Dependencies specific to the history sub-package
-        # Add other sub-package specific dependencies here
+        'history': ['fastapi', 'uvicorn', 'motor', 'pymongo', 'cryptography'],
+        'storage': ['fastapi', 'uvicorn', 'minio', 'python-multipart'],
     },
     author='Ryan Eggleston',
     author_email='kre8mymedia@gmail.com',
