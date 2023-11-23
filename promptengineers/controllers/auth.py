@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
@@ -9,9 +11,15 @@ security = HTTPBasic()
 
 class AuthController:
 	def __init__(self) -> None:
-		self.users_db = {
-			"admin": "password",
-		}
+		self.users_db = self.load_users_from_env()
+
+	def load_users_from_env(self):
+		users = {}
+		for key, value in os.environ.items():
+			if key.startswith("USER_"):
+				username = key[5:]  # Remove 'USER_' prefix
+				users[username] = value
+		return users
 
 	def get_current_user(
 		self,
