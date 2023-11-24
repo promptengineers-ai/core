@@ -20,7 +20,6 @@ auth_controller = AuthController()
 #################################################
 @router.post(
 	"/vectorstores",
-	dependencies=[Depends(auth_controller.get_current_user)],
 	response_model=ResponseCreateVectorStore,
 	tags=[TAG]
 )
@@ -66,7 +65,6 @@ async def create_vectorstore(
 #################################################
 @router.post(
 	"/vectorstores/file",
-	dependencies=[Depends(auth_controller.get_current_user)],
 	response_model=ResponseFileLoader,
 	tags=[TAG]
 )
@@ -116,7 +114,6 @@ async def create_vectorstore_from_file(
 #################################################
 @router.post(
 	"/vectorstores/multi",
-	dependencies=[Depends(auth_controller.get_current_user)],
 	response_model=ResponseCreateVectorStore,
 	tags=[TAG],
 	# include_in_schema=False # TODO: Needs some work
@@ -164,7 +161,6 @@ async def create_vectorstore_from_multiple_sources(
 ######################################
 @router.get(
 	"/vectorstores/pinecone",
-	dependencies=[Depends(auth_controller.get_current_user)],
 	response_model=ResponseListPineconeVectorStores,
 	tags=[TAG]
 )
@@ -206,7 +202,6 @@ async def list_pinecone_vectorstores(
 @router.delete(
 	"/vectorstores/pinecone",
 	status_code=status.HTTP_204_NO_CONTENT,
-	dependencies=[Depends(auth_controller.get_current_user)],
 	tags=[TAG]
 )
 async def delete_pinecone_vectorstore(
@@ -231,7 +226,7 @@ async def delete_pinecone_vectorstore(
 ######################################
 @router.get(
 	"/vectorstores/redis",
-	dependencies=[Depends(auth_controller.get_current_user)],
+
 	response_model=ResponseListPineconeVectorStores,
 	tags=[TAG]
 )
@@ -274,7 +269,6 @@ async def list_redis_vectorstores(
 @router.delete(
 	"/vectorstores/redis",
 	status_code=status.HTTP_204_NO_CONTENT,
-	dependencies=[Depends(auth_controller.get_current_user)],
 	tags=[TAG]
 )
 async def delete_redis_vectorstore(

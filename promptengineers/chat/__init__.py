@@ -32,7 +32,6 @@ def get_chat_controller(request: Request) -> ChatController:
 #################################################
 @router.post(
 	"/chat",
-	dependencies=[Depends(auth_controller.get_current_user)],
 	tags=[TAG],
 	response_model=ResponseChat,
 	responses={
@@ -101,7 +100,6 @@ async def chat(
 #################################################
 @router.post(
 	"/chat/agent",
-	dependencies=[Depends(auth_controller.get_current_user)],
 	tags=[TAG],
 	response_model=ResponseAgentChat,
 	responses={
@@ -168,7 +166,6 @@ async def agent(
 #################################################
 @router.post(
 	"/chat/agent/plugins",
-	dependencies=[Depends(auth_controller.get_current_user)],
 	tags=[TAG],
 	response_model=ResponseAgentPluginsChat,
 	responses={
@@ -235,7 +232,6 @@ async def agent_plugins(
 #################################################
 @router.post(
 	"/chat/vectorstore",
-	dependencies=[Depends(auth_controller.get_current_user)],
 	tags=[TAG],
 	response_model=ResponseVectorstoreChat,
 	responses={

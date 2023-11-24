@@ -28,7 +28,6 @@ def get_controller(request: Request) -> HistoryController:
 #################################################
 @router.get(
 	"/chat/history",
-	dependencies=[Depends(auth_controller.get_current_user)],
 	tags=[TAG],
 	response_model=ReqBodyListChatHistory
 )
@@ -65,7 +64,6 @@ async def list_chat_histories(
 #################################################
 @router.post(
 	"/chat/history",
-	dependencies=[Depends(auth_controller.get_current_user)],
 	tags=[TAG],
 	response_model=ReqBodyChatHistory
 )
@@ -98,7 +96,6 @@ async def create_chat_history(controller: HistoryController = Depends(get_contro
 #################################################
 @router.get(
 	"/chat/history/{chat_id}",
-	dependencies=[Depends(auth_controller.get_current_user)],
 	tags=[TAG],
 	response_model=ReqBodyChatHistory,
 )
@@ -135,7 +132,6 @@ async def show_chat_history(
 #################################################
 @router.put(
 	"/chat/history/{chat_id}",
-	dependencies=[Depends(auth_controller.get_current_user)],
 	tags=[TAG],
 	response_model=ReqBodyChatHistory,
 )
@@ -167,7 +163,6 @@ async def update_chat_history(
 #################################################
 @router.delete(
 	"/chat/history/{chat_id}",
-	dependencies=[Depends(auth_controller.get_current_user)],
 	tags=[TAG],
 	status_code=status.HTTP_204_NO_CONTENT,
 )
