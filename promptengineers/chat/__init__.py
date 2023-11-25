@@ -16,6 +16,7 @@ from promptengineers.models.response import (ResponseChat, ResponseAgentChat, Re
 from promptengineers.repos.user import UserRepo
 from promptengineers.strategies.vectorstores import VectorstoreContext
 from promptengineers.utils import logger
+from promptengineers.utils.chains import format_agent_actions
 from promptengineers.utils.validation import Validator
 
 user_repo = UserRepo()
@@ -128,7 +129,8 @@ async def agent(
 				tools=body.tools
 			)
 			data = ujson.dumps({
-				'message': result,
+				'message': result['output'],
+				'actions': format_agent_actions(result['intermediate_steps']),
 				'usage': {
 					'total_tokens': cb.total_tokens,
 					'prompt_tokens': cb.prompt_tokens,
