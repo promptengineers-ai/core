@@ -8,7 +8,7 @@ from langchain.chains import LLMChain
 from langchain.callbacks import AsyncIteratorCallbackHandler, get_openai_callback
 
 from promptengineers.config.llm import ACCEPTED_OLLAMA_MODELS, ACCEPTED_OPENAI_MODELS
-from promptengineers.interfaces.repos import UserRepoInterface
+from promptengineers.interfaces.repos import IUserRepo
 from promptengineers.models.message import SystemMessage, UserMessage, AssistantMessage
 from promptengineers.repos.user import UserRepo
 from promptengineers.services.llm import openai_chat_functions_model
@@ -18,7 +18,7 @@ from promptengineers.strategies.llms import OllamaStrategy, OpenAIStrategy, Mode
 from promptengineers.strategies.vectorstores import VectorstoreContext
 from promptengineers.utils import retrieve_chat_messages, retrieve_system_message
 from promptengineers.utils.chains import get_chat_history
-from promptengineers.utils.stream import token_stream, end_stream, wrap_done
+from promptengineers.utils.stream import token_stream, wrap_done
 from promptengineers.utils.validation import Validator
 from promptengineers.utils.prompts import get_system_template
 
@@ -29,7 +29,7 @@ class ChatController:
 		self, 
 		user_id: str = None,
 		request: Request = None, 
-		user_repo: UserRepoInterface = None, 
+		user_repo: IUserRepo = None, 
 		available_tools: dict[str, Any] = None
 	):
 		self.request = request
@@ -73,7 +73,7 @@ class ChatController:
 			## Would also consider gathering data here
 			token = chunk['choices'][0]['delta'].get('content', '')
 			yield token_stream(token)
-		yield end_stream()
+		yield token_stream()
 
 	#######################################################
 	## Open AI Function Calling
@@ -113,7 +113,7 @@ class ChatController:
 		for chunk in response:
 			token = chunk['choices'][0]['delta'].get('content', '')
 			yield token_stream(token)
-		yield end_stream()
+		yield token_stream()
 
 	##############################################################################
 	## Normal Chat
@@ -187,7 +187,7 @@ class ChatController:
 														chat_history=chat_history,
 														available_tools=self.available_tools)
 			# Begin a task that runs in the background.
-			response = chain.run(filtered_messages[-1])
+			response = chain(filtered_messages[-1])
 		return response, cb
 
 	##############################################################################
@@ -306,7 +306,7 @@ class ChatController:
 			# Yield the tokens as they come in.
 			async for token in callback.aiter():
 				yield token_stream(token)
-			yield end_stream()
+			yield token_stream()
 			await task
 		elif model in ACCEPTED_OLLAMA_MODELS:
 			# Get Tokens
@@ -331,7 +331,7 @@ class ChatController:
 			# Yield the tokens as they come in.
 			for token in llm._stream(prompt):
 				yield token_stream(token.text)
-			yield end_stream()
+			yield token_stream()
 
 	#######################################################
 	## Langchain Agent Stream Chat
@@ -373,15 +373,21 @@ class ChatController:
 															chat_history,
 															callbacks=[callback],
 															available_tools=self.available_tools)
-		task = asyncio.create_task(wrap_done(
-			agent_executor.acall(query),
-			callback.done),
-		)
-		# Yield the tokens as they come in.
-		async for token in callback.aiter():
-			yield token_stream(token)
-		yield end_stream()
-		await task
+		runnable = agent_executor.astream_log(query)
+		async for chunk in runnable:
+			if type(chunk.ops[0]['value']) == str:
+				filled_chunk = chunk.ops[0]['value']
+				if filled_chunk:
+					yield token_stream(filled_chunk)
+			else:
+				action_type = chunk.ops[0]['value'].get('type', '')
+				tool = chunk.ops[0]['value'].get('name', '')
+				if tool and action_type == 'tool':
+					yield token_stream(tool, action_type)
+				args = chunk.ops[0]['value'].get('text', '')
+				if args:
+					yield token_stream(args, 'log')
+		yield token_stream()
 
 	#######################################################
 	## Langchain Agent Plugins Stream Chat
@@ -427,7 +433,7 @@ class ChatController:
 		# Yield the tokens as they come in.
 		async for token in callback.aiter():
 			yield token_stream(token)
-		yield end_stream()
+		yield token_stream()
 		await task
 
 	#######################################################
@@ -471,5 +477,5 @@ class ChatController:
 		# Yield the tokens as they come in.
 		async for token in callback.aiter():
 			yield token_stream(token)
-		yield end_stream()
+		yield token_stream()
 		await task
