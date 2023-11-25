@@ -1,19 +1,26 @@
 from bson.objectid import ObjectId
 from fastapi import Request
+from promptengineers.interfaces.repos import UserRepoInterface
 
+from promptengineers.interfaces.repos import UserRepoInterface
 from promptengineers.repos.user import UserRepo
 from promptengineers.services.mongo import MongoService
 
-user_repo = UserRepo()
-
 class HistoryController:
-	def __init__(self, request: Request = None):
+	def __init__(
+			self, 
+			request: Request = None, 
+			user_repo: UserRepoInterface = None, 
+			db_name: str = None,
+			col_name: str = None
+		):
 		self.request = request
 		self.user_id = getattr(request.state, "user_id", None)
+		self.user_repo = user_repo or UserRepo()
 		self.history_service = MongoService(
-			host=user_repo.find_token(self.user_id, 'MONGO_CONNECTION'),
-			db=user_repo.find_token(self.user_id, 'DB_NAME'),
-			collection='history'
+			host=self.user_repo.find_token(self.user_id, 'MONGO_CONNECTION'),
+			db=db_name or self.user_repo.find_token(self.user_id, 'DB_NAME'),
+			collection=col_name or 'history'
 		)
 
 	##############################################################

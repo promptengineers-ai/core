@@ -20,7 +20,7 @@ from promptengineers.models.response.stream import (
 
 class ResponseFileLoader(BaseModel):
     class Config:
-        json_schema_extra = {
+        schema_extra = {
             "example": {
                 "message": "Vectorstore Created!",
                 "vectorstore": "index_name",
@@ -42,12 +42,12 @@ class ResponseRetrieveVectorstores(BaseModel):
     class Config:
         """A message to send to the chatbot."""
 
-        json_schema_extra = {"example": {"vectorstores": ["formio.pkl", "bullmq.pkl"]}}
+        schema_extra = {"example": {"vectorstores": ["formio.pkl", "bullmq.pkl"]}}
 
 
 class ResponseRetrieveFiles(BaseModel):
     class Config:
-        json_schema_extra = {
+        schema_extra = {
             "example": {
                 "files": [
                     "A Prompt Pattern Catalog to Enhance Prompt Engineering with ChatGPT.pdf",
@@ -59,7 +59,7 @@ class ResponseRetrieveFiles(BaseModel):
 
 class ResponseFileStorage(BaseModel):
     class Config:
-        json_schema_extra = {
+        schema_extra = {
             "example": {
                 "message": "File(s) Uploaded!",
                 "bucket_name": "prompt-engineers-dev",

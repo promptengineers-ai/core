@@ -24,7 +24,7 @@ class ReqBodyChat(BaseModel):  # pylint: disable=too-few-public-methods
     class Config:  # pylint: disable=too-few-public-methods
         """A message to send to the chatbot."""
 
-        json_schema_extra = {
+        schema_extra = {
             "example": {
                 "model": "gpt-3.5-turbo",
                 "temperature": 0.8,
@@ -50,7 +50,7 @@ class ReqBodyAgentChat(ReqBodyChat):  # pylint: disable=too-few-public-methods
     class Config:  # pylint: disable=too-few-public-methods
         """A message to send to the chatbot."""
 
-        json_schema_extra = {
+        schema_extra = {
             "example": {
                 "model": "gpt-3.5-turbo",
                 "temperature": 0.8,
@@ -75,7 +75,7 @@ class ReqBodyAgentPluginsChat(ReqBodyChat):  # pylint: disable=too-few-public-me
     class Config:  # pylint: disable=too-few-public-methods
         """A message to send to the chatbot."""
 
-        json_schema_extra = {
+        schema_extra = {
             "example": {
                 "model": "gpt-3.5-turbo-16k",
                 "temperature": 0.8,
@@ -101,7 +101,7 @@ class ReqBodyVectorstoreChat(ReqBodyChat):  # pylint: disable=too-few-public-met
     class Config:  # pylint: disable=too-few-public-methods
         """A message to send to the chatbot."""
 
-        json_schema_extra = {
+        schema_extra = {
             "example": {
                 "provider": "pinecone",
                 "vectorstore": "Formio",
@@ -124,7 +124,7 @@ class ReqBodyFunctionChat(ReqBodyChat):  # pylint: disable=too-few-public-method
     class Config:  # pylint: disable=too-few-public-methods
         """A message to send to the chatbot."""
 
-        json_schema_extra = {
+        schema_extra = {
             "example": {
                 "model": "gpt-3.5-turbo",
                 "temperature": 0.8,
@@ -146,7 +146,7 @@ class RequestMultiLoader(BaseModel):
     ] or None = Field(...)
 
     class Config:
-        json_schema_extra = {
+        schema_extra = {
             "example": {
                 "provider": "pinecone",
                 "index_name": "formio-docs-and-website",
@@ -169,7 +169,7 @@ class RequestDataLoader(BaseModel):
     ] or None = Field(...)
 
     class Config:
-        json_schema_extra = {
+        schema_extra = {
             "example": {
                 "provider": "pinecone",
                 "index_name": "formio-docs-and-website",
@@ -187,7 +187,7 @@ class ReqBodyChatHistory(ReqBodyChat): # pylint: disable=too-few-public-methods
 
 	class Config: # pylint: disable=too-few-public-methods
 		"""A message to send to the chatbot."""
-		json_schema_extra = {
+		schema_extra = {
 			"example": {
 				"title": "World Series 2001 Chatbot",
 				"model": "gpt-3.5-turbo",
@@ -207,7 +207,7 @@ class ReqBodyListChatHistory(ReqBodyChatHistory): # pylint: disable=too-few-publ
 
 	class Config: # pylint: disable=too-few-public-methods
 		"""A message to send to the chatbot."""
-		json_schema_extra = {
+		schema_extra = {
 			"example": {
 				"chats": [
 					{

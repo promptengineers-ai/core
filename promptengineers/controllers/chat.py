@@ -8,6 +8,7 @@ from langchain.chains import LLMChain
 from langchain.callbacks import AsyncIteratorCallbackHandler, get_openai_callback
 
 from promptengineers.config.llm import ACCEPTED_OLLAMA_MODELS, ACCEPTED_OPENAI_MODELS
+from promptengineers.interfaces.repos import UserRepoInterface
 from promptengineers.models.message import SystemMessage, UserMessage, AssistantMessage
 from promptengineers.repos.user import UserRepo
 from promptengineers.services.llm import openai_chat_functions_model
@@ -22,13 +23,19 @@ from promptengineers.utils.validation import Validator
 from promptengineers.utils.prompts import get_system_template
 
 validator = Validator()
-user_repo = UserRepo()
-
 
 class ChatController:
-	def __init__(self, request: Request = None):
+	def __init__(
+		self, 
+		user_id: str = None,
+		request: Request = None, 
+		user_repo: UserRepoInterface = None, 
+		available_tools: dict[str, Any] = None
+	):
 		self.request = request
-		self.user_id = getattr(request.state, "user_id", None)
+		self.user_id = user_id or getattr(request.state, "user_id", None)
+		self.user_repo = user_repo or UserRepo()
+		self.available_tools = available_tools or None
 
 	#######################################################
 	## Open AI Chat GPT
@@ -124,7 +131,7 @@ class ChatController:
 		# Retrieve the system message
 		system_message = retrieve_system_message(messages)
 		# Get Tokens
-		api_key = user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
+		api_key = self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
 		# Check allowed
 		if model in ACCEPTED_OPENAI_MODELS:
 			model_service = ModelContext(strategy=OpenAIStrategy(api_key=api_key))
@@ -158,8 +165,10 @@ class ChatController:
 		chat_history = list(zip(filtered_messages[::2], filtered_messages[1::2]))
 		# Retrieve the system message
 		system_message = retrieve_system_message(messages)
+		# Attach the application user id to the system message
+		system_message = system_message + '\n' + "USER_ID=" + str(self.user_id)
 		# Get Tokens
-		api_key = user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
+		api_key = self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
 		# Create the model
 		if model in ACCEPTED_OPENAI_MODELS:
 			model_service = ModelContext(strategy=OpenAIStrategy(api_key=api_key))
@@ -173,9 +182,10 @@ class ChatController:
 		)
 		with get_openai_callback() as cb:
 			# Retrieve the conversation
-			chain = ChainService(model).agent_with_tools(tools,
-														system_message,
-														chat_history)
+			chain = ChainService(model).agent_with_tools(tools=tools,
+														system_message=system_message,
+														chat_history=chat_history,
+														available_tools=self.available_tools)
 			# Begin a task that runs in the background.
 			response = chain.run(filtered_messages[-1])
 		return response, cb
@@ -197,7 +207,7 @@ class ChatController:
 		# Retrieve the system message
 		system_message = retrieve_system_message(messages)
 		# Get Tokens
-		api_key = user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
+		api_key = self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
 		# Create the model
 		if model in ACCEPTED_OPENAI_MODELS:
 			model_service = ModelContext(strategy=OpenAIStrategy(api_key=api_key))
@@ -237,7 +247,7 @@ class ChatController:
 		# Retrieve the system message
 		system_message = retrieve_system_message(messages)
 		# Get Tokens
-		api_key = user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
+		api_key = self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
 		# Create the model
 		if model in ACCEPTED_OPENAI_MODELS:
 			model_service = ModelContext(strategy=OpenAIStrategy(api_key=api_key))
@@ -276,7 +286,7 @@ class ChatController:
 		# Create the model
 		if model in ACCEPTED_OPENAI_MODELS:
 			# Get Tokens
-			api_key = user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
+			api_key = self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
 			model_service = ModelContext(strategy=OpenAIStrategy(api_key=api_key))
 			callback = AsyncIteratorCallbackHandler()
 			model = model_service.chat(
@@ -300,7 +310,7 @@ class ChatController:
 			await task
 		elif model in ACCEPTED_OLLAMA_MODELS:
 			# Get Tokens
-			base_url = user_repo.find_token(self.user_id, 'OLLAMA_BASE_URL')
+			base_url = self.user_repo.find_token(self.user_id, 'OLLAMA_BASE_URL')
 			if base_url:
 				strategy = OllamaStrategy(base_url=base_url)
 			else:
@@ -339,8 +349,10 @@ class ChatController:
 		chat_history = list(zip(filtered_messages[::2], filtered_messages[1::2]))
 		# Retrieve the system message
 		system_message = retrieve_system_message(messages)
+		# Attach the application user id to the system message
+		system_message = system_message + '\n' + "USER_ID=" + str(self.user_id)
 		# Get Tokens
-		api_key = user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
+		api_key = self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
 		# Create the model
 		if model in ACCEPTED_OPENAI_MODELS:
 			model_service = ModelContext(strategy=OpenAIStrategy(api_key=api_key))
@@ -359,7 +371,8 @@ class ChatController:
 		agent_executor = ChainService(model).agent_with_tools(tools,
 															system_message,
 															chat_history,
-															callbacks=[callback])
+															callbacks=[callback],
+															available_tools=self.available_tools)
 		task = asyncio.create_task(wrap_done(
 			agent_executor.acall(query),
 			callback.done),
@@ -387,7 +400,7 @@ class ChatController:
 		# Retrieve the system message
 		system_message = retrieve_system_message(messages)
 		# Get Tokens
-		api_key = user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
+		api_key = self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
 		# Create the model
 		if model in ACCEPTED_OPENAI_MODELS:
 			model_service = ModelContext(strategy=OpenAIStrategy(api_key=api_key))
@@ -434,7 +447,7 @@ class ChatController:
 		# Retrieve the system message
 		system_message = retrieve_system_message(messages)
 		# Get Tokens
-		api_key = user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
+		api_key = self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
 		# Create the callback
 		callback = AsyncIteratorCallbackHandler()
 		# Create the model

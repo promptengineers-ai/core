@@ -6,12 +6,13 @@ import tempfile
 from queue import Queue
 from concurrent.futures import ThreadPoolExecutor
 
-from fastapi import HTTPException, UploadFile, File
+from fastapi import HTTPException, UploadFile, File, Request
 from langchain.embeddings.openai import OpenAIEmbeddings
 
 from promptengineers.config.loaders import FileLoaderType
 from promptengineers.config.test import TEST_USER_ID
 from promptengineers.factories.loader import LoaderFactory
+from promptengineers.interfaces.repos import UserRepoInterface
 from promptengineers.repos.user import UserRepo
 from promptengineers.services.redis import RedisService
 from promptengineers.services.pinecone import PineconeService
@@ -153,14 +154,16 @@ def faiss_vectorstore(loaders, tmpdirname, user_id, name, tokens):
 
 
 class VectorSearchController:
-	def __init__(self):
+	def __init__(self, request: Request = None, user_repo: UserRepoInterface = None):
 		# Initialize any necessary variables or objects here
-		self.data = {}
+		self.request = request
+		self.user_id = getattr(request.state, "user_id", None)
+		self.user_repo = user_repo or UserRepo()
 
 	##############################################################
 	### Create multi loader vectorstore
 	##############################################################
-	async def create_multi_loader_vectorstore(self, body, user_id = TEST_USER_ID):
+	async def create_multi_loader_vectorstore(self, body):
 		"""Create a vectorstore from multiple loaders."""
 		passed_file_names = dict(body).get('files', [])
 		pinecone_keys = ['PINECONE_KEY', 'PINECONE_ENV', 'PINECONE_INDEX', 'OPENAI_API_KEY']
@@ -168,7 +171,7 @@ class VectorSearchController:
 
 		if not passed_file_names:
 			if dict(body).get('provider') == 'pinecone':
-				tokens = user_repo.find_token(user_id, pinecone_keys)
+				tokens = self.user_repo.find_token(self.user_id, pinecone_keys)
 				validator.validate_api_keys(tokens, pinecone_keys)
 				embeddings = OpenAIEmbeddings(openai_api_key=tokens.get('OPENAI_API_KEY'))
 				pinecone_service = PineconeService(
@@ -184,7 +187,7 @@ class VectorSearchController:
 				)
 
 			if dict(body).get('provider') == 'redis':
-				tokens = user_repo.find_token(user_id, redis_keys)
+				tokens = self.user_repo.find_token(self.user_id, redis_keys)
 				validator.validate_api_keys(tokens, redis_keys)
 				redis_service = RedisService(
 					openai_api_key=tokens.get('OPENAI_API_KEY'),
@@ -195,10 +198,10 @@ class VectorSearchController:
 				redis_service.from_documents(loaders)
 		else:
 			aws_keys = ['ACCESS_KEY_ID', 'ACCESS_SECRET_KEY', 'BUCKET']
-			tokens = user_repo.find_token(user_id, [*pinecone_keys, *aws_keys])
+			tokens = self.user_repo.find_token(self.user_id, [*pinecone_keys, *aws_keys])
 			validator.validate_api_keys(tokens, [*pinecone_keys, *aws_keys])
 			# Accumulate Files
-			files = accumulate_files(passed_file_names, user_id, tokens)
+			files = accumulate_files(passed_file_names, self.user_id, tokens)
 
 			# Create a temporary directory
 			with tempfile.TemporaryDirectory() as tmpdirname:
@@ -207,7 +210,7 @@ class VectorSearchController:
 				loaders = accumulate_loaders(body, files, tmpdirname)
 
 				if dict(body).get('provider') == 'faiss':
-					faiss_vectorstore(loaders, tmpdirname, user_id, dict(body).get('index_name'), tokens)
+					faiss_vectorstore(loaders, tmpdirname, self.user_id, dict(body).get('index_name'), tokens)
 
 				if dict(body).get('provider') == 'pinecone':
 					embeddings = OpenAIEmbeddings(openai_api_key=tokens.get('OPENAI_API_KEY'))
@@ -219,7 +222,7 @@ class VectorSearchController:
 					pinecone_service.from_documents(loaders, embeddings, namespace=dict(body).get('index_name'))
 
 				if dict(body).get('provider') == 'redis':
-					tokens = user_repo.find_token(user_id, redis_keys)
+					tokens = self.user_repo.find_token(self.user_id, redis_keys)
 					validator.validate_api_keys(tokens, redis_keys)
 					redis_service = RedisService(
 						openai_api_key=tokens.get('OPENAI_API_KEY'),
@@ -234,7 +237,6 @@ class VectorSearchController:
 	##############################################################
 	async def create_vectorstore_from_files(
 		self,
-		user_id: str,
 		vectrostore_name: str,
 		files: List[UploadFile] = File(...),
 		threaded: bool = True,
@@ -251,7 +253,7 @@ class VectorSearchController:
 
 		## Get Tokens
 		keys = ['PINECONE_KEY', 'PINECONE_ENV', 'PINECONE_INDEX', 'OPENAI_API_KEY']
-		tokens = user_repo.find_token(user_id, keys)
+		tokens = self.user_repo.find_token(self.user_id, keys)
 		## Check for token, else throw error
 		validator.validate_api_keys(tokens, keys)
 
@@ -293,10 +295,10 @@ class VectorSearchController:
 	##############################################################
 	### Retrieve Pinecone Vectorstores
 	##############################################################
-	def retrieve_pinecone_vectorstores(self, user_id: str):
+	def retrieve_pinecone_vectorstores(self):
 		## Get Tokens
 		keys = ['PINECONE_KEY', 'PINECONE_ENV', 'PINECONE_INDEX']
-		tokens = user_repo.find_token(user_id, keys)
+		tokens = self.user_repo.find_token(self.user_id, keys)
 		## Check for token, else throw error
 		validator.validate_api_keys(tokens, keys)
 		## Get Vectorstores
@@ -315,10 +317,10 @@ class VectorSearchController:
 	##############################################################
 	### Delete Pinecone Vectorstore
 	##############################################################
-	def delete_pinecone_vectorstore(self, prefix: str, user_id: str):
+	def delete_pinecone_vectorstore(self, prefix: str):
 		## Get Tokens
 		keys = ['PINECONE_KEY', 'PINECONE_ENV', 'PINECONE_INDEX']
-		tokens = user_repo.find_token(user_id, keys)
+		tokens = self.user_repo.find_token(self.user_id, keys)
 		## Check for token, else throw error
 		validator.validate_api_keys(tokens, keys)
 		## Delete Vectorstore
@@ -336,10 +338,10 @@ class VectorSearchController:
 	##############################################################
 	### Retrieve Pinecone Vectorstores
 	##############################################################
-	def retrieve_redis_vectorstores(self, user_id: str):
+	def retrieve_redis_vectorstores(self):
 		## Get Tokens
 		keys = ['REDIS_URL']
-		tokens = user_repo.find_token(user_id, keys)
+		tokens = self.user_repo.find_token(self.user_id, keys)
 		## Check for token, else throw error
 		validator.validate_api_keys(tokens, keys)
 		## Get Vectorstores
@@ -355,10 +357,10 @@ class VectorSearchController:
 	##############################################################
 	### Delete Pinecone Vectorstore
 	##############################################################
-	def delete_redis_vectorstore(self, prefix: str, user_id: str):
+	def delete_redis_vectorstore(self, prefix: str):
 		## Get Tokens
 		keys = ['REDIS_URL']
-		tokens = user_repo.find_token(user_id, keys)
+		tokens = self.user_repo.find_token(self.user_id, keys)
 		## Check for token, else throw error
 		validator.validate_api_keys(tokens, keys)
 		## Delete Vectorstore

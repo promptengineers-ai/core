@@ -106,9 +106,9 @@ class ChainService:
 	# 		get_chat_history=get_chat_history
 	# 	)
 
-	def agent_with_tools(self, tools, system_message, chat_history, callbacks=[]):
+	def agent_with_tools(self, tools, system_message, chat_history, callbacks=[], available_tools=AVAILABLE_TOOLS):
 		"""Agent search."""
-		filtered_tools = filter_tools(tools, AVAILABLE_TOOLS)
+		filtered_tools = filter_tools(tools, available_tools)
 		agent_executor = self.create_executor(system_message, filtered_tools, chat_history, callbacks=callbacks)
 		return agent_executor
 

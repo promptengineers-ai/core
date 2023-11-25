@@ -20,66 +20,66 @@ class StorageService:
 			secure=False if MINIO_SERVER or minio_server else True
 		)
 
-def retrieve_all_files_raw(self, bucket: str, prefix: str = ''):
-	"""Retrieve all file details from a bucket"""
-	files = []
-	try:
-		objects = self.client.list_objects(bucket, prefix=prefix, recursive=True)
-		for obj in objects:
-			files.append(obj)
-	except S3Error as err:
-		logger.error("Error retrieving files: %s", err)
-	return files
+	def retrieve_all_files_raw(self, bucket: str, prefix: str = ''):
+		"""Retrieve all file details from a bucket"""
+		files = []
+		try:
+			objects = self.client.list_objects(bucket, prefix=prefix, recursive=True)
+			for obj in objects:
+				files.append(obj)
+		except S3Error as err:
+			logger.error("Error retrieving files: %s", err)
+		return files
 
-def retrieve_all_files(self, bucket: str, prefix: str = ''):
-	"""Retrieve all filenames from a bucket"""
-	files = []
-	try:
-		objects = self.client.list_objects(bucket, prefix=prefix, recursive=True)
-		for obj in objects:
-			filename = obj.object_name.split('/')[-1]
-			if filename:
-				files.append(filename)
-	except S3Error as err:
-		logger.error("Error retrieving filenames: %s", err)
-	return files
+	def retrieve_all_files(self, bucket: str, prefix: str = ''):
+		"""Retrieve all filenames from a bucket"""
+		files = []
+		try:
+			objects = self.client.list_objects(bucket, prefix=prefix, recursive=True)
+			for obj in objects:
+				filename = obj.object_name.split('/')[-1]
+				if filename:
+					files.append(filename)
+		except S3Error as err:
+			logger.error("Error retrieving filenames: %s", err)
+		return files
 
-def retrieve_file(self, bucket: str, path: str):
-	"""Retrieve a file from a bucket"""
-	try:
-		response = self.client.get_object(bucket, path)
-		return response.data
-	except S3Error as err:
-		logger.error("Error retrieving file %s: %s", path, err)
-		return None
+	def retrieve_file(self, bucket: str, path: str):
+		"""Retrieve a file from a bucket"""
+		try:
+			response = self.client.get_object(bucket, path)
+			return response.data
+		except S3Error as err:
+			logger.error("Error retrieving file %s: %s", path, err)
+			return None
 
-def delete_file(self, bucket: str, path: str):
-	"""Delete a file from a bucket"""
-	try:
-		self.client.remove_object(bucket, path)
-	except S3Error as err:
-		logger.error("Error deleting file %s: %s", path, err)
-		raise ValueError(f"Failed to delete file: {err}") from err
+	def delete_file(self, bucket: str, path: str):
+		"""Delete a file from a bucket"""
+		try:
+			self.client.remove_object(bucket, path)
+		except S3Error as err:
+			logger.error("Error deleting file %s: %s", path, err)
+			raise ValueError(f"Failed to delete file: {err}") from err
 
-def upload_file(self, file_name, bucket, object_name=None):
-	"""Upload a file to a MinIO bucket
+	def upload_file(self, file_name, bucket, object_name=None):
+		"""Upload a file to a MinIO bucket
 
-	:param file_name: File to upload
-	:param bucket: Bucket to upload to
-	:param object_name: MinIO object name. If not specified then file_name is used
-	:return: True if file was uploaded, else False
-	"""
+		:param file_name: File to upload
+		:param bucket: Bucket to upload to
+		:param object_name: MinIO object name. If not specified then file_name is used
+		:return: True if file was uploaded, else False
+		"""
 
-	if object_name is None:
-		object_name = os.path.basename(file_name)
+		if object_name is None:
+			object_name = os.path.basename(file_name)
 
-	try:
-		with open(file_name, 'rb') as file_data:
-			file_stat = os.stat(file_name)
-			self.client.put_object(
-				bucket, object_name, file_data, file_stat.st_size
-			)
-	except S3Error as err:
-		logger.error("Error uploading file %s: %s", file_name, err)
-		return False
-	return True
+		try:
+			with open(file_name, 'rb') as file_data:
+				file_stat = os.stat(file_name)
+				self.client.put_object(
+					bucket, object_name, file_data, file_stat.st_size
+				)
+		except S3Error as err:
+			logger.error("Error uploading file %s: %s", file_name, err)
+			return False
+		return True

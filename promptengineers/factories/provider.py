@@ -1,10 +1,10 @@
 
+from promptengineers.interfaces.repos import UserRepoInterface
 from promptengineers.repos.user import UserRepo
 from promptengineers.utils.validation import Validator
 from promptengineers.strategies.vectorstores import PineconeStrategy, RedisStrategy
 
 validator = Validator()
-user_repo = UserRepo()
 
 class VectorSearchProviderFactory:
 	@staticmethod
@@ -12,6 +12,7 @@ class VectorSearchProviderFactory:
 		provider: ('redis', 'pinecone'),
 		user_id: str,
 		index_name: str,
+		user_repo: UserRepoInterface = UserRepo(),
 	):
 		if provider == 'pinecone':
 			required_keys = ['OPENAI_API_KEY', 'PINECONE_KEY', 'PINECONE_ENV', 'PINECONE_INDEX']
