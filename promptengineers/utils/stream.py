@@ -21,25 +21,37 @@ async def wrap_done(fn_name: Awaitable, event: asyncio.Event):
         # Signal the aiter to stop.
         event.set()
 
-def token_stream(token: str):
+def token_stream(token: str = None, action_type: str = None):
     """ Use server-sent-events to stream the response"""
-    data = {
-		'sender': 'assistant',
-		'message': token,
-		'type': 'stream'
-    }
-    logger.debug('[utils.stream.token_stream] Stream: %s', str(data))
+    if not token and not action_type:
+        data = {
+            'sender': 'assistant',
+            'message': "",
+            'type': 'end'
+        }
+        logger.debug('[utils.stream.token_stream] End: %s', str(data))
+    elif action_type == 'tool':
+        data = {
+            'sender': 'assistant',
+            'message': token,
+            'type': 'tool'
+        }
+        logger.debug('[utils.stream.token_stream] Action: %s', str(data))
+    elif action_type == 'log':
+        data = {
+            'sender': 'assistant',
+            'message': token,
+            'type': 'log'
+        }
+        logger.debug('[utils.stream.token_stream] Log: %s', str(data))
+    else:
+        data = {
+            'sender': 'assistant',
+            'message': token,
+            'type': 'stream'
+        }
+        logger.debug('[utils.stream.token_stream] Token: %s', str(data))
     return f"data: {ujson.dumps(data)}\n\n"
-
-def end_stream():
-    """Send the end of the stream"""
-    end_content = {
-		'sender': 'assistant',
-		'message': "",
-		'type': 'end'
-    }
-    logger.debug('[stream.utils.end_stream] End: %s', str(end_content))
-    return f"data: {ujson.dumps(end_content)}\n\n"
 
 async def handle_streaming_response(stream, stream_type):
     return StreamingResponse(

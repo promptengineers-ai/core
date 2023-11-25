@@ -12,7 +12,7 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from promptengineers.config.loaders import FileLoaderType
 from promptengineers.config.test import TEST_USER_ID
 from promptengineers.factories.loader import LoaderFactory
-from promptengineers.interfaces.repos import UserRepoInterface
+from promptengineers.interfaces.repos import IUserRepo
 from promptengineers.repos.user import UserRepo
 from promptengineers.services.redis import RedisService
 from promptengineers.services.pinecone import PineconeService
@@ -154,7 +154,7 @@ def faiss_vectorstore(loaders, tmpdirname, user_id, name, tokens):
 
 
 class VectorSearchController:
-	def __init__(self, request: Request = None, user_repo: UserRepoInterface = None):
+	def __init__(self, request: Request = None, user_repo: IUserRepo = None):
 		# Initialize any necessary variables or objects here
 		self.request = request
 		self.user_id = getattr(request.state, "user_id", None)

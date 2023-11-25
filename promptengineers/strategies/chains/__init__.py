@@ -54,9 +54,14 @@ class ChainService:
 		chat_history,
 		verbose = True if APP_ENV == 'development' else False,
 		return_messages = True,
-		callbacks = []
+		callbacks = [],
+		return_intermediate_steps = True
 	):
-		memory = ConversationBufferMemory(memory_key="chat_history", return_messages=return_messages)
+		memory = ConversationBufferMemory(
+			memory_key="chat_history", 
+			return_messages=return_messages, 
+			output_key='output'
+		)
 		system_message = SystemMessage(content=content)
 		prompt = OpenAIFunctionsAgent.create_prompt(
 			system_message=system_message,
@@ -70,7 +75,14 @@ class ChainService:
 				else:
 					memory.chat_memory.add_user_message(message[0])
 		agent = OpenAIFunctionsAgent(llm=self.model, tools=tools, prompt=prompt)
-		return AgentExecutor(agent=agent, tools=tools, memory=memory, verbose=verbose, callbacks=callbacks)
+		return AgentExecutor(
+			agent=agent, 
+			tools=tools,
+			memory=memory, 
+			verbose=verbose, 
+			callbacks=callbacks, 
+			return_intermediate_steps=return_intermediate_steps
+		)
 
 	def conversation_retrieval(
 		self,

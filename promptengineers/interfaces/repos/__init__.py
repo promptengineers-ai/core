@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Union, Optional, Dict, Any
 
-class UserRepoInterface(ABC):
+class IUserRepo(ABC):
 
     @abstractmethod
     def find(self, user_id: str = None) -> Optional[Dict[str, Any]]:
