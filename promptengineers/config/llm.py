@@ -2,7 +2,7 @@ from enum import Enum
 
 class OpenAIModels(Enum):
     GPT_3_5_TURBO = 'gpt-3.5-turbo'
-    GPT_3_5_TURBO_16K = 'gpt-3.5-turbo-16k'
+    GPT_3_5_TURBO_16K = 'gpt-3.5-turbo-1106'
     GPT_3_5_TURBO_MARCH = 'gpt-3.5-turbo-0301'
     GPT_4 = 'gpt-4'
     GPT_4_MARCH = 'gpt-4-0314'
