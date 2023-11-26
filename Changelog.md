@@ -5,12 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.11
+### Fixed
+  - bugfix/13-schema-extra-to-json-schema-extra (2023-11-26)
+
 ## 0.1.10
 ### Fixed
   - bugfix/11-update-function-call-line (2023-11-26)
 
 ## 0.1.9
 ### Added
+  - bugfix/13-schema-extra-to-json-schema-extra (2023-11-26)
   - feature/5-agent-action-message-multiple-steps (2023-11-25)
 
 ## 0.1.8
