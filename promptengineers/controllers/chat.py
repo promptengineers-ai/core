@@ -376,25 +376,27 @@ class ChatController:
 															available_tools=self.available_tools)
 		runnable = agent_executor.astream_log(query)
 		async for chunk in runnable:
-			if type(chunk.ops[0]['value']) == str:
-				filled_chunk = chunk.ops[0]['value']
-				if filled_chunk:
-					yield token_stream(filled_chunk)
-			else:
-				generations = chunk.ops[0]['value'].get('generations', [[]])[0]
-				if generations:
-					function_call = generations[0].get('message', {}).get('additional_kwargs').get('function_call', {})
-					tool = function_call.get('name', None)
-					if tool:
-						yield token_stream(tool, 'tool')
-					args = function_call.get('arguments', None)
-					if args:
-						if type(args) == str:
-							tool_args = ujson.loads(args)
-						else:
-							tool_args =  ujson.loads(args)['__arg1']
-						
-						yield token_stream(f"Invoking: `{tool}` with `{tool_args}`", 'log')
+			operation = chunk.ops[0]['value']
+			if operation:
+				if type(operation) == str:
+					filled_chunk = operation
+					if filled_chunk:
+						yield token_stream(filled_chunk)
+				else:
+					generations = operation.get('generations', False)
+					if generations:
+						function_call = generations[0][0].get('message', {}).additional_kwargs.get('function_call', {})
+						tool = function_call.get('name', None)
+						if tool:
+							yield token_stream(tool, 'tool')
+						args = function_call.get('arguments', None)
+						if args:
+							if type(args) == str:
+								tool_args = ujson.loads(args)
+							else:
+								tool_args =  ujson.loads(args)['__arg1']
+							
+							yield token_stream(f"Invoking: `{tool}` with `{tool_args}`", 'log')
 		yield token_stream()
 
 	#######################################################
