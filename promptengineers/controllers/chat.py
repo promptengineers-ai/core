@@ -383,7 +383,7 @@ class ChatController:
 			else:
 				generations = chunk.ops[0]['value'].get('generations', [[]])[0]
 				if generations:
-					function_call = generations[0].get('message', {}).get('kwargs', {}).get('additional_kwargs', {}).get('function_call', {})
+					function_call = generations[0].get('message', {}).get('additional_kwargs').get('function_call', {})
 					tool = function_call.get('name', None)
 					if tool:
 						yield token_stream(tool, 'tool')
