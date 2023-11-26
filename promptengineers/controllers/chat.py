@@ -1,4 +1,5 @@
 """Chat Controller"""
+import ujson
 import openai
 import asyncio
 from typing import Any, Union, AsyncIterable
@@ -384,9 +385,14 @@ class ChatController:
 				tool = chunk.ops[0]['value'].get('name', '')
 				if tool and action_type == 'tool':
 					yield token_stream(tool, action_type)
-				args = chunk.ops[0]['value'].get('text', '')
-				if args:
-					yield token_stream(args, 'log')
+				generations = chunk.ops[0]['value'].get('generations', [[]])[0]
+				if generations:
+					function_call = generations[0].get('message', {}).get('kwargs', {}).get('additional_kwargs', {}).get('function_call', {})
+					tool = function_call.get('name', None)
+					args = function_call.get('arguments', None)
+					if args:
+						tool_args = ujson.loads(args)['__arg1']
+						yield token_stream(f"Invoking: `{tool}` with `{tool_args}`", 'log')
 		yield token_stream()
 
 	#######################################################
