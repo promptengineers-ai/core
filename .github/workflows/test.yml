@@ -2,26 +2,23 @@ name: Run Tests
 
 on: push
 
-env:
-  RUN_WITH_DB: 'false'
-
 jobs:
   test:
     runs-on: ubuntu-latest
 
-    # Corrected conditional statement for enabling services
-    if: ${{ env.RUN_WITH_DB == 'true' }}
-    services:
-      mongodb:
-        image: mongo
-        ports:
-          - 27017:27017
+    ### Services needed for the tests
+    # services:
+    #   mongodb:
+    #     image: mongo
+    #     ports:
+    #       - 27017:27017
 
+    ### Steps to run the tests
     steps:
     - uses: actions/checkout@v2
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v1
       with:
         python-version: '3.x'
 
@@ -29,6 +26,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -e '.[history,storage,chat,retrieval]'
+
 
     - name: Run tests
       run: |
