@@ -15,6 +15,10 @@ from promptengineers.utils import logger
 TAG = "Retrieval"
 router = APIRouter()
 auth_controller = AuthController()
+
+def get_controller(request: Request) -> VectorSearchController:
+	return VectorSearchController(request=request)
+
 #################################################
 # Create vectorstore from files
 #################################################
@@ -24,14 +28,13 @@ auth_controller = AuthController()
 	tags=[TAG]
 )
 async def create_vectorstore(
-	request: Request,
-	body: RequestDataLoader
+	body: RequestDataLoader,
+	controller: VectorSearchController = Depends(get_controller),
 ):
 	"""File Loader endpoint."""
 	logger.debug('[POST /vectorstores] Body: %s', str(body))
 	try:
-		user_id = getattr(request.state, "user_id", None)
-		await VectorSearchController().create_multi_loader_vectorstore(body, user_id)
+		await controller.create_multi_loader_vectorstore(body)
 
 		## Format Response
 		data = ujson.dumps({
@@ -69,15 +72,13 @@ async def create_vectorstore(
 	tags=[TAG]
 )
 async def create_vectorstore_from_file(
-	request: Request,
 	index_name: str = Form(...),
-	files: List[UploadFile] = File(...)
+	files: List[UploadFile] = File(...),
+	controller: VectorSearchController = Depends(get_controller),
 ):
 	"""File Loader endpoint."""
 	try:
-		user_id = getattr(request.state, "user_id", None)
-		await VectorSearchController().create_vectorstore_from_files(
-			user_id,
+		await controller.create_vectorstore_from_files(
 			index_name,
 			files
 		)
@@ -120,15 +121,15 @@ async def create_vectorstore_from_file(
 )
 async def create_vectorstore_from_multiple_sources(
 	request: Request,
-	body: RequestMultiLoader
+	body: RequestMultiLoader,
+	controller: VectorSearchController = Depends(get_controller),
 ):
 	# Get Body
 	body = await request.json()
 	logger.debug('[POST /vectorstores/multi] Body: %s', str(body))
 
 	try:
-		user_id = getattr(request.state, "user_id", None)
-		await VectorSearchController().create_multi_loader_vectorstore(body, user_id)
+		await controller.create_multi_loader_vectorstore(body)
 		## Format Response
 		data = ujson.dumps({
 			'message': 'Vectorstore Created!',
@@ -164,12 +165,9 @@ async def create_vectorstore_from_multiple_sources(
 	response_model=ResponseListPineconeVectorStores,
 	tags=[TAG]
 )
-async def list_pinecone_vectorstores(
-	request: Request
-):
+async def list_pinecone_vectorstores(controller: VectorSearchController = Depends(get_controller)):
 	try:
-		user_id = getattr(request.state, "user_id", None)
-		result = VectorSearchController().retrieve_pinecone_vectorstores(user_id)
+		result = controller.retrieve_pinecone_vectorstores()
 		# Format Response
 		data = ujson.dumps({
 			**result
@@ -190,7 +188,8 @@ async def list_pinecone_vectorstores(
 		logger.error("HTTPException: %s", err.detail)
 		raise
 	except Exception as err:
-		logger.error("%s", err, stack_info=True)
+		tb = traceback.format_exc()
+		logger.error("[routes.retrieval.list_pinecone_vectorstores]: %s\n%s", err, tb)
 		raise HTTPException(
 			status_code=500,
 			detail=f"An unexpected error occurred. {str(err)}"
@@ -205,12 +204,11 @@ async def list_pinecone_vectorstores(
 	tags=[TAG]
 )
 async def delete_pinecone_vectorstore(
-	request: Request,
 	prefix: str or None = None,
+	controller: VectorSearchController = Depends(get_controller)
 ):
 	try:
-		user_id = getattr(request.state, "user_id", None)
-		VectorSearchController().delete_pinecone_vectorstore(prefix, user_id)
+		controller.delete_pinecone_vectorstore(prefix)
 		return Response(status_code=204)
 	except ValidationException as err:
 		logger.warning("ValidationException: %s", err)
@@ -226,16 +224,12 @@ async def delete_pinecone_vectorstore(
 ######################################
 @router.get(
 	"/vectorstores/redis",
-
 	response_model=ResponseListPineconeVectorStores,
 	tags=[TAG]
 )
-async def list_redis_vectorstores(
-	request: Request
-):
+async def list_redis_vectorstores(controller: VectorSearchController = Depends(get_controller)):
 	try:
-		user_id = getattr(request.state, "user_id", None)
-		result = VectorSearchController().retrieve_redis_vectorstores(user_id)
+		result = controller.retrieve_redis_vectorstores()
 		# Format Response
 		data = ujson.dumps({
 			**result
@@ -272,12 +266,11 @@ async def list_redis_vectorstores(
 	tags=[TAG]
 )
 async def delete_redis_vectorstore(
-	request: Request,
 	prefix: str or None = None,
+	controller: VectorSearchController = Depends(get_controller)
 ):
 	try:
-		user_id = getattr(request.state, "user_id", None)
-		VectorSearchController().delete_redis_vectorstore(prefix, user_id)
+		controller.delete_redis_vectorstore(prefix)
 		return Response(status_code=204)
 	except ValidationException as err:
 		logger.warning("ValidationException: %s", err)

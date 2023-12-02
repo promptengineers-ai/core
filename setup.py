@@ -1,9 +1,12 @@
+import os
 from setuptools import setup, find_packages
+
+VERSION = os.environ.get('VERSION', '0.0.1') 
 
 setup(
     name='promptengineers',
-    version='0.1.12',
-    packages=find_packages(),
+    version=VERSION,
+    packages=find_packages(exclude=["tests*", ".github*", "scripts*"]),
     install_requires=[
         'ujson',
         'fastapi',
