@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## 0.1.13
-### Fixed
+### Added
   - feature/18-add-get-controller-to-retrieval-routes (2023-12-1)
 
 ## 0.1.12
@@ -23,9 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.1.9
 ### Added
-  - feature/18-add-get-controller-to-retrieval-routes (2023-12-01)
-  - bugfix/13-schema-extra-to-json-schema-extra (2023-11-26)
   - feature/5-agent-action-message-multiple-steps (2023-11-25)
+### Fixed
+  - bugfix/13-schema-extra-to-json-schema-extra (2023-11-26)
 
 ## 0.1.8
 ### Added 
