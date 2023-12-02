@@ -2,9 +2,22 @@ name: Run Tests
 
 on: push
 
+env:
+  RUN_WITH_DB: 'false'
+
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    ### Services needed for the tests
+    if: 'env.RUN_WITH_DB == 'true'
+    services:
+      mongodb:
+        image: mongo
+        ports:
+          - 27017:27017
+
+    ### Steps to run the tests
     steps:
     - uses: actions/checkout@v2
 
@@ -16,7 +29,8 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -e .  # Install the package and dependencies
+        pip install -e '.[history,storage,chat,retrieval]'
+
 
     - name: Run tests
       run: |
