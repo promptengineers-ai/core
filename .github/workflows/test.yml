@@ -7,6 +7,7 @@ jobs:
     runs-on: ubuntu-latest
 
     ### Services needed for the tests
+    # Uncomment if needed
     # services:
     #   mongodb:
     #     image: mongo
@@ -27,11 +28,10 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -e '.[history,storage,chat,retrieval]'
+        pip install pytest  # Install pytest
 
-
-    - name: Run tests
+    - name: Run tests with pytest
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       run: |
-        python -m unittest discover -s tests
-
+        pytest tests  # Run tests using pytest
