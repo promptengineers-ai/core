@@ -6,7 +6,7 @@ VERSION = os.environ.get('VERSION', '0.0.1')
 setup(
     name='promptengineers',
     version=VERSION,
-    packages=find_packages(),
+    packages=find_packages(exclude=["tests*", ".github*", "scripts*"]),
     install_requires=[
         'ujson',
         'fastapi',
