@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.13
+### Added
+  - feature/18-add-get-controller-to-retrieval-routes (2023-12-1)
+
 ## 0.1.12
 ### Fixed
   - bugfix/16-fix-async-iterator-chat-controller (2023-11-26)
@@ -19,8 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.1.9
 ### Added
-  - bugfix/13-schema-extra-to-json-schema-extra (2023-11-26)
   - feature/5-agent-action-message-multiple-steps (2023-11-25)
+### Fixed
+  - bugfix/13-schema-extra-to-json-schema-extra (2023-11-26)
 
 ## 0.1.8
 ### Added 
