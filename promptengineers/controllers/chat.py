@@ -481,11 +481,12 @@ class ChatController:
 			'chat_history': chat_history
 		}
 		# Retrieve the conversation
-		qa_chain = ChainService(model).conversation_retrieval(
-			vectorstore, 
+		qa_chain = ChainService(model).agent_with_tools(
+			['math_tool'], 
 			system_message,
 			chat_history,
-			# callbacks=[callback]
+			available_tools=self.available_tools,
+			vectorstore=vectorstore,
 		)
 		
 		# # Begin a task that runs in the background.
