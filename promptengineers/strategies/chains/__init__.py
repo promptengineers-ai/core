@@ -11,7 +11,7 @@ from langchain.chains import (
 	ConversationalRetrievalChain,
 	LLMChain
 )
-from langchain.chains.chat_vector_db.prompts import CONDENSE_QUESTION_PROMPT
+from langchain.chains.chat_vector_db.prompts import QA_PROMPT
 from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import (
     ChatPromptTemplate,
@@ -26,17 +26,23 @@ from promptengineers.config.tools import AVAILABLE_TOOLS
 from promptengineers.utils.chains import get_chat_history, filter_tools
 from promptengineers.utils.prompts import get_system_template
 
+from langchain.agents.openai_functions_agent.agent_token_buffer_memory import (
+    AgentTokenBufferMemory,
+)
+from langchain.agents.agent_toolkits import create_conversational_retrieval_agent, create_retriever_tool
+
+
 
 class ChainService:
 	"""Chain Service"""
 	def __init__(self, model):
 		self.model = model
 
-	def condense_question(self):
+	def condense_question(self, system_message):
 		"""Condense a question into a single sentence."""
 		return LLMChain(
 			llm=self.model,
-			prompt=CONDENSE_QUESTION_PROMPT,
+			prompt=get_system_template(system_message),
 		)
 
 	def collect_docs(self, system_message):
@@ -52,16 +58,17 @@ class ChainService:
 		content,
 		tools,
 		chat_history,
-		verbose = True if APP_ENV == 'development' else False,
+		verbose=True if APP_ENV == 'local' or APP_ENV == 'development' else False,
 		return_messages = True,
 		callbacks = [],
 		return_intermediate_steps = True
 	):
-		memory = ConversationBufferMemory(
-			memory_key="chat_history", 
-			return_messages=return_messages, 
-			output_key='output'
-		)
+		# memory = ConversationBufferMemory(
+		# 	memory_key="chat_history", 
+		# 	return_messages=return_messages, 
+		# 	output_key='output'
+		# )
+		memory = AgentTokenBufferMemory(memory_key="chat_history", llm=self.model, return_messages=return_messages)
 		system_message = SystemMessage(content=content)
 		prompt = OpenAIFunctionsAgent.create_prompt(
 			system_message=system_message,
@@ -83,21 +90,117 @@ class ChainService:
 			callbacks=callbacks, 
 			return_intermediate_steps=return_intermediate_steps
 		)
+	
+	# def conversation_retrieval(
+	# 	self,
+	# 	vectorstore,
+	# 	system_message,
+	# 	chat_history,
+	# 	callbacks = []
+	# ):
+	# 	"""Retrieve a conversation."""
+	# 	tool = create_retriever_tool(
+	# 		vectorstore.as_retriever(),
+	# 		"search_formio_docs",
+	# 		"Searches and returns documents regarding Form.io.",
+	# 	)
+	# 	tools = [tool]
+	# 	system_message = SystemMessage(content=system_message)
+	# 	agent_executor = create_conversational_retrieval_agent(
+	# 		self.model, 
+	# 		tools, 
+	# 		system_message=system_message, 
+	# 		verbose=True,
+	# 		# callbacks=callbacks
+	# 	)
+	# 	return agent_executor
 
 	def conversation_retrieval(
 		self,
 		vectorstore,
-		system_message
+		system_message,
+		chat_history,
+		verbose=True if APP_ENV == 'local' or APP_ENV == 'development' else False,
 	):
 		"""Retrieve a conversation."""
-		memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-		return ConversationalRetrievalChain(
-			question_generator=self.condense_question(),
-			retriever=vectorstore.as_retriever(),
-			memory=memory,
-			combine_docs_chain=self.collect_docs(system_message),
-			get_chat_history=get_chat_history,
+		tool = create_retriever_tool(
+			vectorstore.as_retriever(),
+			"search_docs",
+			"Searches and returns documents. It is a requirement to use this for every query.",
 		)
+		tools = [tool]
+		system_message = SystemMessage(content=system_message)
+		prompt = OpenAIFunctionsAgent.create_prompt(
+			system_message=system_message,
+			extra_prompt_messages=[MessagesPlaceholder(variable_name="chat_history")],
+		)
+		agent = OpenAIFunctionsAgent(llm=self.model, tools=tools, prompt=prompt)
+		memory = AgentTokenBufferMemory(memory_key="chat_history", llm=self.model)
+		for message in chat_history:
+			if message[0] and message[1]:
+				memory.chat_memory.add_user_message(message[0])
+				memory.chat_memory.add_ai_message(message[1])
+			else:
+				memory.chat_memory.add_user_message(message[0])
+		agent_executor = AgentExecutor(
+			agent=agent,
+			tools=tools,
+			memory=memory,
+			verbose=verbose,
+			return_intermediate_steps=True,
+		)
+		return agent_executor
+
+	# def conversation_retrieval(
+	# 	self,
+	# 	vectorstore,
+	# 	system_message,
+	# 	chat_history,
+	# 	callbacks = []
+	# ):
+	# 	"""Retrieve a conversation."""
+	# 	memory = ConversationSummaryBufferMemory(llm=self.model, memory_key="chat_history", return_messages=True)
+	# 	for message in chat_history:
+	# 		if message[0] and message[1]:
+	# 			memory.chat_memory.add_user_message(message[0])
+	# 			memory.chat_memory.add_ai_message(message[1])
+	# 		else:
+	# 			memory.chat_memory.add_user_message(message[0])
+	# 	return ConversationalRetrievalChain.from_llm(
+	# 		condense_question_llm=self.model,
+	# 		retriever=vectorstore.as_retriever(),
+	# 		memory=memory,
+	# 		combine_docs_chain=self.collect_docs(system_message),
+	# 		get_chat_history=get_chat_history,
+	# 		verbose=True,
+	# 		callbacks=callbacks
+	# 	)
+
+	# def conversation_retrieval(
+	# 	self,
+	# 	vectorstore,
+	# 	system_message,
+	# 	chat_history,
+	# 	callbacks = []
+	# ):
+	# 	"""Retrieve a conversation."""
+	# 	memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+	# 	if len(chat_history) > 0:
+	# 		for message in chat_history:
+	# 			if message[0] and message[1]:
+	# 				memory.chat_memory.add_user_message(message[0])
+	# 				memory.chat_memory.add_ai_message(message[1])
+	# 			else:
+	# 				memory.chat_memory.add_user_message(message[0])
+	# 	return ConversationalRetrievalChain(
+	# 		question_generator=self.condense_question(system_message),
+	# 		retriever=vectorstore.as_retriever(),
+	# 		memory=memory,
+	# 		combine_docs_chain=self.collect_docs(system_message),
+	# 		get_chat_history=get_chat_history,
+	# 		verbose=True,
+	# 		callbacks=callbacks
+	# 	)
 
 	# def agent_search(self, tools, chat_history):
 	# 	"""Agent search."""
@@ -118,9 +221,24 @@ class ChainService:
 	# 		get_chat_history=get_chat_history
 	# 	)
 
-	def agent_with_tools(self, tools, system_message, chat_history, callbacks=[], available_tools=AVAILABLE_TOOLS):
+	def agent_with_tools(
+			self, 
+			tools, 
+			system_message, 
+			chat_history, 
+			available_tools=AVAILABLE_TOOLS,
+			vectorstore=None,
+			callbacks=[]
+		):
 		"""Agent search."""
 		filtered_tools = filter_tools(tools, available_tools)
+		if vectorstore:
+			docs_tool = create_retriever_tool(
+				vectorstore.as_retriever(),
+				"search_docs",
+				"Searches and returns documents. It is a requirement to use this for every query.",
+			)
+			filtered_tools.append(docs_tool)
 		agent_executor = self.create_executor(system_message, filtered_tools, chat_history, callbacks=callbacks)
 		return agent_executor
 
