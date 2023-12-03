@@ -119,13 +119,14 @@ class ChainService:
 		vectorstore,
 		system_message,
 		chat_history,
-		callbacks = []
+		verbose=True if APP_ENV == 'local' or APP_ENV == 'development' else False,
+
 	):
 		"""Retrieve a conversation."""
 		tool = create_retriever_tool(
 			vectorstore.as_retriever(),
-			"search_formio_docs",
-			"Searches and returns documents regarding Form.io.",
+			"search_docs",
+			"Searches and returns documents. It is a requirement to use this for every query.",
 		)
 		tools = [tool]
 		system_message = SystemMessage(content=system_message)
@@ -145,7 +146,7 @@ class ChainService:
 			agent=agent,
 			tools=tools,
 			memory=memory,
-			verbose=True,
+			verbose=verbose,
 			return_intermediate_steps=True,
 		)
 		return agent_executor
