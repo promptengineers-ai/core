@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.1.13
 ### Added
+  - feature/23-equips-streaming-with-retreival-agent (2023-12-03)
   - feature/18-add-get-controller-to-retrieval-routes (2023-12-1)
 
 ## 0.1.12
