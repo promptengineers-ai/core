@@ -5,7 +5,7 @@ def get_chat_history(inputs: tuple) -> str:
     """Formats the chat history into a readable format for the chatbot"""
     res = []
     for human, assistant in inputs:
-        res.append(f"Human: {human}\Assistant: {assistant}")
+        res.append(f"Human: {human}\nAssistant: {assistant}")
     return "\n".join(res)
 
 def filter_tools(keys, dictionary):
