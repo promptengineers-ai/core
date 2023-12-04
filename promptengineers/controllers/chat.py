@@ -183,9 +183,9 @@ class ChatController:
 		)
 		with get_openai_callback() as cb:
 			# Retrieve the conversation
-			chain = ChainService(model).agent_with_tools(tools=tools,
-														system_message=system_message,
+			chain = ChainService(model).agent_with_tools(system_message=system_message,
 														chat_history=chat_history,
+														tools=tools,
 														available_tools=self.available_tools)
 			# Begin a task that runs in the background.
 			response = chain(filtered_messages[-1])
@@ -262,7 +262,9 @@ class ChatController:
 		)
 		with get_openai_callback() as cb:
 			# Retrieve the conversation
-			chain = ChainService(model).conversation_retrieval(vectorstore, system_message)
+			chain = ChainService(model).conversation_retrieval(
+				system_message=system_message, vectorstore=vectorstore
+			)
 			# Begin a task that runs in the background.
 			response = chain.run(filtered_messages[-1])
 		return response, cb
@@ -369,11 +371,11 @@ class ChatController:
 		)
 		query = {'input': filtered_messages[-1], 'chat_history': chat_history}
 		# tools = load_tools(tools, llm=model)
-		agent_executor = ChainService(model).agent_with_tools(tools,
-															system_message,
+		agent_executor = ChainService(model).agent_with_tools(system_message,
 															chat_history,
-															callbacks=[callback],
-															available_tools=self.available_tools)
+															tools,
+															available_tools=self.available_tools,
+															callbacks=[callback])
 		runnable = agent_executor.astream_log(query)
 		async for chunk in runnable:
 			operation = chunk.ops[0]['value']
@@ -481,11 +483,9 @@ class ChatController:
 			'chat_history': chat_history
 		}
 		# Retrieve the conversation
-		qa_chain = ChainService(model).agent_with_tools(
-			['math_tool'], 
-			system_message,
-			chat_history,
-			available_tools=self.available_tools,
+		qa_chain = ChainService(model).conversation_retrieval(
+			system_message=system_message,
+			chat_history=chat_history,
 			vectorstore=vectorstore,
 		)
 		

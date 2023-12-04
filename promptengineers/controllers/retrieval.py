@@ -80,19 +80,19 @@ def accumulate_files(files, user_id, tokens):
 def accumulate_loaders(body, files=None, tmpdirname=None):
 	loaders = []
 	for loader in dict(body).get('loaders', []):
-		loader_type = loader.type
+		loader_type = loader['type']  # Accessing the type using dictionary key
 		loader_data = {}
 		if loader_type == 'copy':
-			loader_data = {'text': loader.text}
+			loader_data = {'text': loader['text']}
 		elif loader_type == 'yt':
-			loader_data = {'ytId': loader.ytId}
-		elif loader_type == 'ethereum' or loader_type == 'polygon':
-			loader_data = {'contract_address': loader.contract_address}
+			loader_data = {'ytId': loader['ytId']}
+		elif loader_type in ['ethereum', 'polygon']:
+			loader_data = {'contract_address': loader['contract_address']}
 		else:
-			loader_data = {'urls': loader.urls}
+			loader_data = {'urls': loader['urls']}
 
 		doc_loader = LoaderFactory.create_loader(
-			loader.type,
+			loader['type'],  # Again using dictionary key access
 			loader_data
 		)
 		loaders.append(doc_loader)
