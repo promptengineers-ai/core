@@ -107,8 +107,6 @@ class PineconeService:
             split_docs(docs, chunk_size, chunk_overlap),
             embeddings,
             index_name=self.index_name,
-            namespace=namespace,
-            pool_threads=1,
+            namespace=namespace
         )
-
 
