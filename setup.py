@@ -29,7 +29,7 @@ setup(
             'beautifulsoup4',
         ],
         'retrieval': [
-            'langchain',
+            'langchain==0.0.275',
             'openai',
             'python-multipart',
             'redis',
