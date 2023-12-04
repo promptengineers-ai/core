@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from langchain.llms import Ollama
-from langchain.chat_models import ChatOpenAI, BedrockChat
+from langchain.chat_models import ChatOpenAI
 
 # Define the strategy interface
 class LLMStrategy(ABC):
@@ -49,6 +49,7 @@ class BedrockStrategy(LLMStrategy):
 		streaming: bool = False,
 		callbacks: list or None = None,
 	) -> str:
+		from langchain.chat_models import BedrockChat
 		# Similarly, this would contain logic specific to another chat model provider
 		return BedrockChat(
 			client=self.client,
