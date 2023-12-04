@@ -2,6 +2,7 @@
 from typing import Any, List, Optional, Union
 from pydantic import BaseModel, Field
 
+from promptengineers.models import Retrieval
 from promptengineers.models.loader import (
     TypeUrlLoader,
     YoutubeLoader,
@@ -41,11 +42,12 @@ class ReqBodyChat(BaseModel):  # pylint: disable=too-few-public-methods
             }
         }
 
-
 class ReqBodyAgentChat(ReqBodyChat):  # pylint: disable=too-few-public-methods
     """A message to send to the chatbot."""
 
-    tools: list[str] = None
+    tools: list[str] = None    
+    plugins: list[str] = None
+    retrieval: Retrieval = None
 
     class Config:  # pylint: disable=too-few-public-methods
         """A message to send to the chatbot."""
@@ -63,6 +65,11 @@ class ReqBodyAgentChat(ReqBodyChat):  # pylint: disable=too-few-public-methods
                     },
                 ],
                 "tools": ["math_tool"],
+                "plugins": ["https://api.speak.com/.well-known/ai-plugin.json"],
+                "retrieval": {
+                    "provider": "pinecone",
+                    "index": "Formio",
+                }
             }
         }
 

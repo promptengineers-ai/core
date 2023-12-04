@@ -5,7 +5,8 @@ from langchain.agents import (AgentType, initialize_agent,
 							load_tools)
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import MessagesPlaceholder
-# from langchain.tools import AIPluginTool
+from langchain.tools import AIPluginTool
+from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import (
     ConversationChain,
 	ConversationalRetrievalChain,
@@ -20,7 +21,7 @@ from langchain.prompts import (
     HumanMessagePromptTemplate,
     PromptTemplate
 )
-
+from promptengineers.strategies.vectorstores import VectorstoreContext
 from promptengineers.config import APP_ENV
 from promptengineers.config.tools import AVAILABLE_TOOLS
 from promptengineers.utils.chains import get_chat_history, filter_tools
@@ -117,9 +118,9 @@ class ChainService:
 
 	def conversation_retrieval(
 		self,
-		vectorstore,
 		system_message,
 		chat_history,
+		vectorstore,
 		verbose=True if APP_ENV == 'local' or APP_ENV == 'development' else False,
 	):
 		"""Retrieve a conversation."""
@@ -223,15 +224,18 @@ class ChainService:
 
 	def agent_with_tools(
 			self, 
-			tools, 
-			system_message, 
+			system_message: str, 
 			chat_history, 
-			available_tools=AVAILABLE_TOOLS,
-			vectorstore=None,
-			callbacks=[]
+			tools: list[str] = [],
+			available_tools: dict[str, any] = AVAILABLE_TOOLS,
+			vectorstore: VectorstoreContext = None,
+			plugins: list[str] = [],
+			callbacks: list[BaseCallbackHandler] = []
 		):
 		"""Agent search."""
 		filtered_tools = filter_tools(tools, available_tools)
+		
+		## Add docs tool
 		if vectorstore:
 			docs_tool = create_retriever_tool(
 				vectorstore.as_retriever(),
@@ -239,6 +243,15 @@ class ChainService:
 				"Searches and returns documents. It is a requirement to use this for every query.",
 			)
 			filtered_tools.append(docs_tool)
+
+		## Add plugins
+		if len(plugins) > 0:
+			loaded_tools = load_tools(["requests_all"])
+			for tool in plugins:
+				tool = AIPluginTool.from_plugin_url(tool)
+				loaded_tools += [tool]
+		
+		## Create agent
 		agent_executor = self.create_executor(system_message, filtered_tools, chat_history, callbacks=callbacks)
 		return agent_executor
 
