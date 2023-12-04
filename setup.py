@@ -30,7 +30,7 @@ setup(
         ],
         'retrieval': [
             'langchain==0.0.275',
-            'openai',
+            'openai==0.27.8',
             'python-multipart',
             'redis',
             'pinecone-client',
