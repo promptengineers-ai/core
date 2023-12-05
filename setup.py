@@ -29,8 +29,8 @@ setup(
             'beautifulsoup4',
         ],
         'retrieval': [
-            'langchain==0.0.275',
-            'openai==0.27.8',
+            'langchain',
+            'openai',
             'python-multipart',
             'redis',
             'pinecone-client',
