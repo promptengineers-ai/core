@@ -16,8 +16,8 @@ setup(
         'history': ['motor', 'pymongo', 'cryptography'],
         'storage': [ 'minio', 'python-multipart'],
         'chat': [
-            'langchain',
-            'openai',
+            'langchain==0.1.0',
+            'openai==0.10.2',
             'python-multipart',
             'redis',
             'pinecone-client',
@@ -29,8 +29,8 @@ setup(
             'beautifulsoup4',
         ],
         'retrieval': [
-            'langchain',
-            'openai',
+            'langchain==0.1.0',
+            'openai==0.10.2',
             'python-multipart',
             'redis',
             'pinecone-client',
