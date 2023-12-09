@@ -233,7 +233,7 @@ class ChainService:
 			callbacks: list[BaseCallbackHandler] = None
 		):
 		"""Agent search."""
-		filtered_tools = filter_tools(tools, available_tools or AVAILABLE_TOOLS)
+		filtered_tools = filter_tools(tools or [], available_tools or AVAILABLE_TOOLS)
 		
 		## Add docs tool
 		if vectorstore:
@@ -250,7 +250,7 @@ class ChainService:
 			for tool in plugins:
 				tool = AIPluginTool.from_plugin_url(tool)
 				loaded_tools += [tool]
-		
+			filtered_tools += loaded_tools
 		## Create agent
 		agent_executor = self.create_executor(system_message, filtered_tools, chat_history, callbacks=callbacks)
 		return agent_executor
