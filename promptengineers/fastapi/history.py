@@ -15,7 +15,7 @@ user_repo = UserRepo()
 auth_controller = AuthController()
 history_service = MongoService(
     host=user_repo.find_token(TEST_USER_ID, 'MONGO_CONNECTION'),
-    db='chat_history',
+    db=user_repo.find_token(TEST_USER_ID, 'MONGO_DB_NAME'),
     collection='history'
 )
 TAG = "Chat"
