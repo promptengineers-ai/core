@@ -4,6 +4,7 @@ from bson.objectid import ObjectId
 from promptengineers.interfaces.repos import IUserRepo
 from promptengineers.repos.user import UserRepo
 from promptengineers.services.mongo import MongoService
+from promptengineers.models.request import ReqBodyPromptSystem
 
 class PromptController:
 	def __init__(
@@ -37,7 +38,7 @@ class PromptController:
 	##############################################################
 	### Create Chat History
 	##############################################################
-	async def create(self):
+	async def create(self, body: ReqBodyPromptSystem):
 		body = await self.request.json()
 		body['user_id'] = ObjectId(self.user_id)
 		result = await self.prompt_service.create(dict(body))
@@ -56,7 +57,7 @@ class PromptController:
 	##############################################################
 	### Update Chat History
 	##############################################################
-	async def update(self, chat_id: str):
+	async def update(self, chat_id: str, body: ReqBodyPromptSystem):
 		body = await self.request.json()
 		result = await self.prompt_service.update_one(
 			{'_id': ObjectId(chat_id), 'user_id': ObjectId(self.user_id)},

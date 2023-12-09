@@ -1,5 +1,5 @@
 """Request Models"""
-from .prompt import PromptSystem
+from .prompt import ReqBodyPromptSystem
 from .chat import (ReqBodyChat, ReqBodyAgentChat, ReqBodyAgentPluginsChat,
                     ReqBodyVectorstoreChat, ReqBodyFunctionChat) 
 from .history import ReqBodyChatHistory, ReqBodyListChatHistory
@@ -7,7 +7,7 @@ from .retrieval import RequestMultiLoader, RequestDataLoader
 
 
 __all__ = [
-    'PromptSystem',
+    'ReqBodyPromptSystem',
     'ReqBodyChat',
     'ReqBodyAgentChat',
     'ReqBodyAgentPluginsChat',

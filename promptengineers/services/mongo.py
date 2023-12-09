@@ -13,9 +13,9 @@ class MongoService:
 		"""Ensure that the TTL index is set on the created_at field."""
 		await self.collection.create_index("created_at", expireAfterSeconds=3600 * 24 * 7)
 
-	async def list_docs(self, params: dict, limit=None, page=1) -> list:
+	async def list_docs(self, params: dict, limit=None, page=1, projection={'user_id': 0}) -> list:
 		"""List documents in the collection with pagination."""
-		cursor = self.collection.find(params).sort("updated_at", -1)
+		cursor = self.collection.find(params, projection).sort("updated_at", -1)
 
 		if limit:
 			skip = (page - 1) * limit
@@ -24,9 +24,7 @@ class MongoService:
 			limit = 1000
 
 		documents = await cursor.to_list(length=limit)
-		return {
-			'chats': documents
-		}
+		return documents
 
 	async def create(self, document: dict) -> str:
 		"""Insert a new document into the collection."""
@@ -37,9 +35,9 @@ class MongoService:
 			'_id': str(result.inserted_id)
 		}
 
-	async def read_one(self, params: dict) -> dict:
+	async def read_one(self, params: dict, projection={'user_id': 0}) -> dict:
 		"""Find and return a single document from the collection."""
-		document = await self.collection.find_one(params)
+		document = await self.collection.find_one(params, projection)
 		return document
 
 	async def update_one(self, params: dict, update: dict) -> bool:

@@ -4,6 +4,7 @@ import traceback
 
 from fastapi import APIRouter, HTTPException, Response, Depends, Request, status
 from promptengineers.controllers import PromptController
+from promptengineers.models.request import ReqBodyPromptSystem
 from promptengineers.models.response import ResponsePromptSystemList, ResponsePromptSystem
 from promptengineers.utils import JSONEncoder, logger
 
@@ -31,7 +32,7 @@ async def index(
 		result = await controller.index(page, limit)
 		# Format Response
 		data = json.dumps({
-			**result
+			'prompts': result,
 		}, cls=JSONEncoder)
 		return Response(
 			content=data,
@@ -57,10 +58,13 @@ async def index(
 	tags=[TAG],
 	response_model=ResponsePromptSystem
 )
-async def create(controller: PromptController = Depends(get_controller)):
+async def create(
+	body: ReqBodyPromptSystem,
+	controller: PromptController = Depends(get_controller)
+):
 	"""Creates resource"""
 	try:
-		result = await controller.create()
+		result = await controller.create(body)
 		# Format Response
 		data = json.dumps({
 			**result
@@ -127,11 +131,12 @@ async def show(
 )
 async def update(
 	prompt_id: str,
+	body: ReqBodyPromptSystem,
 	controller: PromptController = Depends(get_controller),
 ):
 	"""Update resource"""
 	try:
-		await controller.update(prompt_id)
+		await controller.update(prompt_id, body)
 		data = json.dumps({
 			'message': 'Chat history updated successfully.'
 		})
