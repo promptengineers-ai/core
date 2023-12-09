@@ -38,7 +38,26 @@ environment variables or for multi-tenanted user application. This is allows for
 ```py
 # Import necessary modules and classes
 from promptengineers.config.test import TEST_USER_ID
+from promptengineers.factories.provider VectorSearchProviderFactory
+from promptengineers.strategies.vectorstores import VectorstoreContext
+from promptengineers.utils.valdation import Validator
+
 from server.repos.user import UserRepo
+
+INDEX_PROVIDER = 'pinecone'
+INDEX_NAME = 'MyRetrievalIndex'
+MODEL = 'gpt-4-turbo'
+TEMPERATURE = 0.9,
+MESSAGES = [
+    {
+        'role': 'system', 
+        'content': 'You are a helpful document retrieval AI, use the context to answer the user queries.'
+    },
+    {
+        'role': 'user', 
+        'content': 'Can you summarize the context?'
+    }
+]
 
 user_repo = UserRepo()
 
@@ -53,9 +72,9 @@ Validator().validate_api_keys(tokens, required_keys)
 
 # Choose the appropriate vector search provider strategy for Pinecone
 vectorstore_strategy = VectorSearchProviderFactory.choose(
-    provider='pinecone',   # Specify the provider as 'pinecone'
-    user_id=user_id,       # The user ID
-    index_name=namespace,  # The name of the index in Pinecone
+    provider=INDEX_PROVIDER,   # Specify the provider as 'pinecone'
+    user_id=TEST_USER_ID,       # The user ID
+    index_name=INDEX_NAME,  # The name of the index in Pinecone
     user_repo=user_repo   # An instance of UserRepo
 )
 
@@ -70,18 +89,9 @@ chat_controller = ChatController(user_id=TEST_USER_ID, user_repo=user_repo)
 
 # Conduct a chat using the langchain_http_vectorstore_chat method with specific parameters
 result, cb = chat_controller.langchain_http_vectorstore_chat(
-    messages=[
-        {
-            'role': 'system', 
-            'content': 'You are a helpful document retrieval AI, use the context to answer the user queries.'
-        },
-        {
-            'role': 'user', 
-            'content': 'Can you summarize the context?'
-        }
-    ],
-    model="gpt-4-turbo",  # Specify the model to use (GPT-4 Turbo)
-    temperature=0.9,      # Set the temperature for response variability
+    messages=MESSAGES,
+    model=MODEL,  # Specify the model to use (GPT-4 Turbo)
+    temperature=TEMPERATURE,      # Set the temperature for response variability
     vectorstore=vectorstore,  # Use the previously loaded vectorstore
 )
 ```
