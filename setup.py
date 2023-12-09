@@ -1,7 +1,7 @@
 import os
 from setuptools import setup, find_packages
 
-VERSION = os.environ.get('VERSION', 'local') 
+VERSION = os.environ.get('VERSION', '0.0.1') 
 
 setup(
     name='promptengineers',
