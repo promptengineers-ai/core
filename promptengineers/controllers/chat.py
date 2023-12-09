@@ -4,7 +4,7 @@ import openai
 import asyncio
 from typing import Any, Union, AsyncIterable
 
-from fastapi import Request
+# from fastapi import Request
 from langchain.chains import LLMChain
 from langchain.callbacks import AsyncIteratorCallbackHandler, get_openai_callback
 
@@ -29,7 +29,8 @@ class ChatController:
 	def __init__(
 		self, 
 		user_id: str = None,
-		request: Request = None, 
+		# request: Request = None, 
+		request = None,
 		user_repo: IUserRepo = None, 
 		available_tools: dict[str, Any] = None
 	):
@@ -142,7 +143,7 @@ class ChatController:
 			temperature=temperature,
 			streaming=False
 		)
-		query = {'question': filtered_messages[-1], 'context': chat_history}
+		query = {'question': filtered_messages[-1], 'chat_history': chat_history}
 		with get_openai_callback() as cb:
 			# Retrieve the conversation
 			chain = LLMChain(llm=model, prompt=get_system_template(system_message))
@@ -298,7 +299,7 @@ class ChatController:
 				streaming=stream,
 				callbacks=[callback]
 			)
-			query = {'question': filtered_messages[-1], 'context': chat_history}
+			query = {'question': filtered_messages[-1], 'chat_history': chat_history}
 			# Retrieve the conversation
 			chain = LLMChain(llm=model, prompt=get_system_template(system_message))
 			# Begin a task that runs in the background.

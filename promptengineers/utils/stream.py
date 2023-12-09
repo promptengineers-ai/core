@@ -4,8 +4,6 @@ import asyncio
 import ujson
 import openai
 
-from fastapi.responses import StreamingResponse
-
 from promptengineers.utils import logger
 
 
@@ -52,13 +50,3 @@ def token_stream(token: str = None, action_type: str = None):
         }
         logger.debug('[utils.stream.token_stream] Token: %s', str(data))
     return f"data: {ujson.dumps(data)}\n\n"
-
-async def handle_streaming_response(stream, stream_type):
-    return StreamingResponse(
-        stream,
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "Content-Type": stream_type,
-        },
-    )

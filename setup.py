@@ -1,7 +1,7 @@
 import os
 from setuptools import setup, find_packages
 
-VERSION = os.environ.get('VERSION', '0.0.1') 
+VERSION = os.environ.get('VERSION', 'local') 
 
 setup(
     name='promptengineers',
@@ -9,36 +9,25 @@ setup(
     packages=find_packages(exclude=["tests*", ".github*", "scripts*"]),
     install_requires=[
         'ujson',
-        'fastapi',
-        'uvicorn',
     ],
     extras_require={
-        'history': ['motor', 'pymongo', 'cryptography'],
-        'storage': [ 'minio', 'python-multipart'],
-        'chat': [
-            'langchain',
-            'openai',
-            'python-multipart',
-            'redis',
-            'pinecone-client',
-            'youtube-transcript-api',
-            'pypdf',
-            'numexpr',
-            'tiktoken',
-            'nest_asyncio',
-            'beautifulsoup4',
-        ],
-        'retrieval': [
-            'langchain',
-            'openai',
-            'python-multipart',
-            'redis',
-            'pinecone-client',
-            'youtube-transcript-api',
-            'pypdf',
-            'numexpr',
-            'tiktoken',
-            'nest_asyncio',
+        'fastapi': [
+            'fastapi',
+            'uvicorn',
+            ## History
+            'motor', 'pymongo', 'cryptography',
+            ## Storage
+            'minio', 'python-multipart',
+            ## Chat & Retrieval
+            'langchain', 
+            'openai', 
+            'redis', 
+            'pinecone-client', 
+            'youtube-transcript-api', 
+            'pypdf', 
+            'numexpr', 
+            'tiktoken', 
+            'nest_asyncio', 
             'beautifulsoup4',
         ],
     },

@@ -226,14 +226,14 @@ class ChainService:
 			self, 
 			system_message: str, 
 			chat_history, 
-			tools: list[str] = [],
-			available_tools: dict[str, any] = AVAILABLE_TOOLS,
+			tools: list[str] = None,
+			available_tools: dict[str, any] = None,
 			vectorstore: VectorstoreContext = None,
-			plugins: list[str] = [],
-			callbacks: list[BaseCallbackHandler] = []
+			plugins: list[str] = None,
+			callbacks: list[BaseCallbackHandler] = None
 		):
 		"""Agent search."""
-		filtered_tools = filter_tools(tools, available_tools)
+		filtered_tools = filter_tools(tools, available_tools or AVAILABLE_TOOLS)
 		
 		## Add docs tool
 		if vectorstore:
@@ -245,7 +245,7 @@ class ChainService:
 			filtered_tools.append(docs_tool)
 
 		## Add plugins
-		if len(plugins) > 0:
+		if plugins and len(plugins) > 0:
 			loaded_tools = load_tools(["requests_all"])
 			for tool in plugins:
 				tool = AIPluginTool.from_plugin_url(tool)

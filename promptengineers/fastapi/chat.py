@@ -25,7 +25,7 @@ auth_controller = AuthController()
 router = APIRouter()
 TAG = "Chat"
 
-def get_chat_controller(request: Request) -> ChatController:
+def get_controller(request: Request) -> ChatController:
 	return ChatController(request=request)
 
 #################################################
@@ -47,7 +47,7 @@ def get_chat_controller(request: Request) -> ChatController:
 )
 async def chat(
 	body: ReqBodyChat,
-	chat_controller: ChatController = Depends(get_chat_controller),
+	chat_controller: ChatController = Depends(get_controller),
 ):
 	"""Chat endpoint."""
 	try:
@@ -115,7 +115,7 @@ async def chat(
 )
 async def agent(
 	body: ReqBodyAgentChat,
-	chat_controller: ChatController = Depends(get_chat_controller),
+	chat_controller: ChatController = Depends(get_controller),
 ):
 	"""Chat endpoint."""
 	try:
@@ -159,9 +159,10 @@ async def agent(
 				"Content-Type": "text/event-stream",
 			}
 		)
-	except Exception as e:
-		logger.error("Error in chat endpoint: %s", e, stack_info=True)
-		raise HTTPException(status_code=500, detail="Internal Server Error") from e
+	except Exception as err:
+		tb = traceback.format_exc()
+		logger.error("[routes.chat.agent] Exception: %s\n%s", err, tb)
+		raise HTTPException(status_code=500, detail="Internal Server Error") from err
 
 #################################################
 # Langchain Agent Plugins
@@ -182,7 +183,7 @@ async def agent(
 )
 async def agent_plugins(
 	body: ReqBodyAgentPluginsChat,
-	chat_controller: ChatController = Depends(get_chat_controller),
+	chat_controller: ChatController = Depends(get_controller),
 ):
 	"""Chat endpoint."""
 	try:
@@ -225,9 +226,10 @@ async def agent_plugins(
 				"Content-Type": "text/event-stream",
 			}
 		)
-	except Exception as e:
-		logger.error("Error in chat endpoint: %s", e, stack_info=True)
-		raise HTTPException(status_code=500, detail="Internal Server Error") from e
+	except Exception as err:
+		tb = traceback.format_exc()
+		logger.error("[routes.chat.agent_plugins] Exception: %s\n%s", err, tb)
+		raise HTTPException(status_code=500, detail="Internal Server Error") from err
 
 #################################################
 # Langchain Vectorstore Route
@@ -249,7 +251,7 @@ async def agent_plugins(
 async def vector_search(
 	request: Request,
 	body: ReqBodyVectorstoreChat,
-	chat_controller: ChatController = Depends(get_chat_controller),
+	chat_controller: ChatController = Depends(get_controller),
 ):
 	"""Chat Vectorstore endpoint."""
 	try:

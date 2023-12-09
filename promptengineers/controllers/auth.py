@@ -5,7 +5,6 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from promptengineers.config.test import TEST_USER_ID
 
-app = FastAPI()
 security = HTTPBasic()
 
 
