@@ -1,5 +1,5 @@
 from bson.objectid import ObjectId
-from fastapi import Request
+# from fastapi import Request
 from promptengineers.interfaces.repos import IUserRepo
 
 from promptengineers.interfaces.repos import IUserRepo
@@ -9,7 +9,8 @@ from promptengineers.services.mongo import MongoService
 class HistoryController:
 	def __init__(
 			self, 
-			request: Request = None, 
+			# request: Request = None, 
+			request = None,
 			user_repo: IUserRepo = None, 
 			db_name: str = None,
 			col_name: str = None
