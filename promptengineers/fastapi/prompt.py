@@ -3,30 +3,30 @@ import json
 import traceback
 
 from fastapi import APIRouter, HTTPException, Response, Depends, Request, status
-from promptengineers.controllers import HistoryController
-from promptengineers.models.request import ReqBodyListChatHistory, ReqBodyChatHistory
+from promptengineers.controllers import PromptController
+from promptengineers.models.response import ResponsePromptSystemList, ResponsePromptSystem
 from promptengineers.utils import JSONEncoder, logger
 
 router = APIRouter()
-TAG = "Chat"
+TAG = "Prompt"
 
-def get_controller(request: Request) -> HistoryController:
-	return HistoryController(request=request)
+def get_controller(request: Request) -> PromptController:
+	return PromptController(request=request)
 
 #################################################
 # List Chat Histories
 #################################################
 @router.get(
-	"/chat/history",
+	"/prompt/system",
 	tags=[TAG],
-	response_model=ReqBodyListChatHistory
+	response_model=ResponsePromptSystemList
 )
-async def list_chat_histories(
+async def index(
 	page: int = 1,
 	limit: int = 50,
-	controller: HistoryController = Depends(get_controller),
+	controller: PromptController = Depends(get_controller),
 ):
-	"""Creates a chat history"""
+	"""List resources"""
 	try:
 		result = await controller.index(page, limit)
 		# Format Response
@@ -53,12 +53,12 @@ async def list_chat_histories(
 # Create Chat History
 #################################################
 @router.post(
-	"/chat/history",
+	"/prompt/system",
 	tags=[TAG],
-	response_model=ReqBodyChatHistory
+	response_model=ResponsePromptSystem
 )
-async def create_chat_history(controller: HistoryController = Depends(get_controller)):
-	"""Creates a chat history"""
+async def create(controller: PromptController = Depends(get_controller)):
+	"""Creates resource"""
 	try:
 		result = await controller.create()
 		# Format Response
@@ -85,17 +85,17 @@ async def create_chat_history(controller: HistoryController = Depends(get_contro
 # Show Chat History
 #################################################
 @router.get(
-	"/chat/history/{chat_id}",
+	"/prompt/system/{prompt_id}",
 	tags=[TAG],
-	response_model=ReqBodyChatHistory,
+	response_model=ResponsePromptSystem,
 )
-async def show_chat_history(
-    chat_id: str,
-    controller: HistoryController = Depends(get_controller),
+async def show(
+    prompt_id: str,
+    controller: PromptController = Depends(get_controller),
 ):
-	"""Creates a chat history"""
+	"""Retrieve resource"""
 	try:
-		result = await controller.show(chat_id)
+		result = await controller.show(prompt_id)
 
 		# Format Response
 		data = json.dumps({
@@ -121,17 +121,17 @@ async def show_chat_history(
 # Update Chat History
 #################################################
 @router.put(
-	"/chat/history/{chat_id}",
+	"/prompt/system/{prompt_id}",
 	tags=[TAG],
-	response_model=ReqBodyChatHistory,
+	response_model=ResponsePromptSystem,
 )
-async def update_chat_history(
-	chat_id: str,
-	controller: HistoryController = Depends(get_controller),
+async def update(
+	prompt_id: str,
+	controller: PromptController = Depends(get_controller),
 ):
-	"""Update chat history"""
+	"""Update resource"""
 	try:
-		await controller.update(chat_id)
+		await controller.update(prompt_id)
 		data = json.dumps({
 			'message': 'Chat history updated successfully.'
 		})
@@ -152,17 +152,17 @@ async def update_chat_history(
 # Delete Chat History
 #################################################
 @router.delete(
-	"/chat/history/{chat_id}",
+	"/prompt/system/{prompt_id}",
 	tags=[TAG],
 	status_code=status.HTTP_204_NO_CONTENT,
 )
-async def delete_chat_history(
-	chat_id: str,
-	controller: HistoryController = Depends(get_controller),
+async def delete(
+	prompt_id: str,
+	controller: PromptController = Depends(get_controller),
 ):
-	"""Deletes chat history"""
+	"""Delete Resource"""
 	try:
-		await controller.delete(chat_id)
+		await controller.delete(prompt_id)
 		# Format Response
 		return Response(status_code=204)
 	except BaseException as err:
