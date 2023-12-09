@@ -20,7 +20,7 @@ class HistoryController:
 		self.user_repo = user_repo or UserRepo()
 		self.history_service = MongoService(
 			host=self.user_repo.find_token(self.user_id, 'MONGO_CONNECTION'),
-			db=db_name or self.user_repo.find_token(self.user_id, 'DB_NAME'),
+			db=db_name or self.user_repo.find_token(self.user_id, 'MONGO_DB_NAME'),
 			collection=col_name or 'history'
 		)
 

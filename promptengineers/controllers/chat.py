@@ -8,7 +8,7 @@ from typing import Any, Union, AsyncIterable
 from langchain.chains import LLMChain
 from langchain.callbacks import AsyncIteratorCallbackHandler, get_openai_callback
 
-from promptengineers.config.llm import ACCEPTED_OLLAMA_MODELS, ACCEPTED_OPENAI_MODELS
+from promptengineers.config.llm import ACCEPTED_OLLAMA_MODELS, ACCEPTED_OPENAI_MODELS, OpenAIModels
 from promptengineers.interfaces.repos import IUserRepo
 from promptengineers.models.message import SystemMessage, UserMessage, AssistantMessage
 from promptengineers.repos.user import UserRepo
@@ -160,6 +160,8 @@ class ChatController:
 		model: str,
 		temperature: float or int = 0.0,
 		tools: list[str] = None,
+		plugins: list[str] = None,
+		vectorstore: VectorstoreContext = None,
 	) -> (str, Any):
 		"""Send a message to the chatbot and yield the response."""
 		filtered_messages = retrieve_chat_messages(messages)
@@ -186,8 +188,10 @@ class ChatController:
 			# Retrieve the conversation
 			chain = ChainService(model).agent_with_tools(system_message=system_message,
 														chat_history=chat_history,
+														available_tools=self.available_tools,
 														tools=tools,
-														available_tools=self.available_tools)
+														plugins=plugins,
+														vectorstore=vectorstore)
 			# Begin a task that runs in the background.
 			response = chain(filtered_messages[-1])
 		return response, cb
@@ -238,7 +242,7 @@ class ChatController:
 	def langchain_http_vectorstore_chat(
 		self,
 		messages: list[Union[SystemMessage, UserMessage, AssistantMessage]] = None,
-		model: str = 'gpt-3.5-turbo',
+		model: str = OpenAIModels.GPT_3_5_TURBO_16K.value,
 		temperature: float or int = 0.9,
 		vectorstore: VectorstoreContext = None,
 	) -> (str, Any):
@@ -343,9 +347,11 @@ class ChatController:
 	async def langchain_stream_agent_chat(
 		self,
 		messages,
-		model:str,
-		temperature: float or int = 0.9,
+		model: str,
+		temperature: float or int = 0.0,
 		tools: list[str] = None,
+		plugins: list[str] = None,
+		vectorstore: VectorstoreContext = None,
 	):
 		"""Send a message to the chatbot and yield the response."""
 		filtered_messages = retrieve_chat_messages(messages)
@@ -372,10 +378,12 @@ class ChatController:
 		)
 		query = {'input': filtered_messages[-1], 'chat_history': chat_history}
 		# tools = load_tools(tools, llm=model)
-		agent_executor = ChainService(model).agent_with_tools(system_message,
-															chat_history,
-															tools,
+		agent_executor = ChainService(model).agent_with_tools(system_message=system_message,
+															chat_history=chat_history,
 															available_tools=self.available_tools,
+															tools=tools,
+															plugins=plugins,
+															vectorstore=vectorstore,
 															callbacks=[callback])
 		runnable = agent_executor.astream_log(query)
 		async for chunk in runnable:
