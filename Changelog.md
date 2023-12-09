@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.24
+### Added
+  - feature/44-system-prompt-template-api (2023-12-09)
+  
+#### Skipped a few versions in between
+
 ## 0.1.15
 ### Added
   - feature/lambda-loader (2023-12-03)
