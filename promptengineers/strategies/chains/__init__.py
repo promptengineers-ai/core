@@ -240,7 +240,10 @@ class ChainService:
 			docs_tool = create_retriever_tool(
 				vectorstore.as_retriever(),
 				"search_docs",
-				"Searches and returns documents. It is a requirement to use this for every query.",
+				"""
+				Searches and returns relevant documents. It is a requirement to use this for every query.
+				Rewrite the user to be a detailed question.
+				""",
 			)
 			filtered_tools.append(docs_tool)
 
