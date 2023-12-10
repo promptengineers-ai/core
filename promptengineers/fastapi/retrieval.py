@@ -5,12 +5,12 @@ import ujson
 from fastapi import (APIRouter, Depends, Request, Form, status,
                     Response, UploadFile, File, HTTPException)
 
-from promptengineers.exceptions import ValidationException
+from promptengineers.core.exceptions import ValidationException
 from promptengineers.models.request import RequestDataLoader, RequestMultiLoader
 from promptengineers.models.response import (ResponseFileLoader, ResponseCreateVectorStore,
 									ResponseListPineconeVectorStores)
-from promptengineers.controllers import VectorSearchController, AuthController
-from promptengineers.utils import logger
+from promptengineers.fastapi.controllers import VectorSearchController, AuthController
+from promptengineers.core.utils import logger
 
 TAG = "Retrieval"
 router = APIRouter()

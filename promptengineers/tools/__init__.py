@@ -4,8 +4,8 @@ from langchain.chains import LLMMathChain
 from langchain.agents import Tool, tool
 from langchain.callbacks.streaming_stdout_final_only import FinalStreamingStdOutCallbackHandler
 
-from promptengineers.config import OPENAI_API_KEY
-from promptengineers.strategies.llms import ModelContext, OpenAIStrategy
+from promptengineers.core.config import OPENAI_API_KEY
+from promptengineers.llms.strategies import ModelContext, OpenAIStrategy
 
 model_service = ModelContext(strategy=OpenAIStrategy(api_key=OPENAI_API_KEY))
 llm = model_service.chat(

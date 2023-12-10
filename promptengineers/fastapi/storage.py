@@ -5,12 +5,12 @@ from typing import List
 from fastapi import (APIRouter, File, HTTPException, Response,
 					UploadFile, status, Depends)
 
-from promptengineers.config import ACCESS_KEY_ID, BUCKET, ACCESS_SECRET_KEY
-from promptengineers.config.test import TEST_USER_ID
-from promptengineers.controllers import StorageController, AuthController
+from promptengineers.core.config import ACCESS_KEY_ID, BUCKET, ACCESS_SECRET_KEY
+from promptengineers.core.config.test import TEST_USER_ID
+from promptengineers.fastapi.controllers import StorageController, AuthController
 from promptengineers.models.response import ResponseFileStorage, ResponseRetrieveFiles
-from promptengineers.services.storage import StorageService
-from promptengineers.utils import logger
+from promptengineers.storage.services import StorageService
+from promptengineers.core.utils import logger
 
 TAG = "Storage"
 router = APIRouter()

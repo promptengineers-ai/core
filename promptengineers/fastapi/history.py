@@ -3,9 +3,10 @@ import json
 import traceback
 
 from fastapi import APIRouter, HTTPException, Response, Depends, Request, status
-from promptengineers.controllers import HistoryController
+from promptengineers.fastapi.controllers import HistoryController
 from promptengineers.models.request import ReqBodyListChatHistory, ReqBodyChatHistory
-from promptengineers.utils import JSONEncoder, logger
+from promptengineers.mongo.utils import JSONEncoder
+from promptengineers.core.utils import logger
 
 router = APIRouter()
 TAG = "Chat"

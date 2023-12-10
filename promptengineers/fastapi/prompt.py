@@ -3,10 +3,11 @@ import json
 import traceback
 
 from fastapi import APIRouter, HTTPException, Response, Depends, Request, status
-from promptengineers.controllers import PromptController
+from promptengineers.fastapi.controllers import PromptController
 from promptengineers.models.request import ReqBodyPromptSystem
 from promptengineers.models.response import ResponsePromptSystemList, ResponsePromptSystem
-from promptengineers.utils import JSONEncoder, logger
+from promptengineers.mongo.utils import JSONEncoder
+from promptengineers.core.utils import logger
 
 router = APIRouter()
 TAG = "Prompt"
