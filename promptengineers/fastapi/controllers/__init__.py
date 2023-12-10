@@ -4,6 +4,7 @@ from .storage import StorageController
 from .chat import ChatController
 from .retrieval import VectorSearchController
 from .prompt import PromptController
+from .settings import SettingsController
 
 __all__ = [
 	'HistoryController',
@@ -11,5 +12,6 @@ __all__ = [
 	'StorageController',
 	'ChatController',
 	'VectorSearchController',
-    'PromptController'
+    'PromptController',
+    'SettingsController'
 ]

@@ -3,9 +3,10 @@ import json
 import traceback
 
 from fastapi import APIRouter, HTTPException, Response, Depends, Request, status
-from promptengineers.fastapi.controllers import HistoryController
-from promptengineers.models.request import ReqBodyHistory
-from promptengineers.models.response import (ResponseHistoryShow, ResponseHistoryIndex, 
+from promptengineers.core.interfaces.controllers import IController
+from promptengineers.fastapi.controllers import SettingsController
+from promptengineers.models.request import ReqBodySettings
+from promptengineers.models.response import (ResponseSettingsList, ResponseSetting,
                                             ResponseCreate, ResponseUpdate)
 from promptengineers.mongo.utils import JSONEncoder
 from promptengineers.core.utils import logger
@@ -13,28 +14,28 @@ from promptengineers.core.utils import logger
 router = APIRouter()
 TAG = "Chat"
 
-def get_controller(request: Request) -> HistoryController:
-	return HistoryController(request=request)
+def get_controller(request: Request) -> IController:
+	return SettingsController(request=request)
 
 #################################################
 # List Chat Histories
 #################################################
 @router.get(
-	"/chat/history",
+	"/chat/settings",
 	tags=[TAG],
-	response_model=ResponseHistoryIndex
+	response_model=ResponseSettingsList
 )
-async def list_chat_histories(
+async def index(
 	page: int = 1,
 	limit: int = 50,
-	controller: HistoryController = Depends(get_controller),
+	controller: IController = Depends(get_controller),
 ):
-	"""List histories"""
+	"""List settings"""
 	try:
 		result = await controller.index(page, limit)
 		# Format Response
 		data = json.dumps({
-			'chats': result
+			'settings': result,
 		}, cls=JSONEncoder)
 		return Response(
 			content=data,
@@ -46,7 +47,7 @@ async def list_chat_histories(
 		raise
 	except BaseException as err:
 		tb = traceback.format_exc()
-		logger.error("[list_chat_histories]: %s\n%s", err, tb)
+		logger.error("[controllers.settings.index]: %s\n%s", err, tb)
 		raise HTTPException(
 			status_code=500,
 			detail=f"An unexpected error occurred. {str(err)}"
@@ -56,15 +57,15 @@ async def list_chat_histories(
 # Create Chat History
 #################################################
 @router.post(
-	"/chat/history",
+	"/chat/settings",
 	tags=[TAG],
 	response_model=ResponseCreate
 )
-async def create_chat_history(
-	body: ReqBodyHistory,
-	controller: HistoryController = Depends(get_controller)
+async def create(
+	body: ReqBodySettings,
+	controller: IController = Depends(get_controller)
 ):
-	"""Create history"""
+	"""Creates settings"""
 	try:
 		result = await controller.create(body)
 		# Format Response
@@ -81,7 +82,7 @@ async def create_chat_history(
 		raise
 	except BaseException as err:
 		tb = traceback.format_exc()
-		logger.error("[create_chat_history]: %s\n%s", err, tb)
+		logger.error("[controllers.settings.create]: %s\n%s", err, tb)
 		raise HTTPException(
 			status_code=500,
 			detail=f"An unexpected error occurred. {str(err)}"
@@ -91,17 +92,17 @@ async def create_chat_history(
 # Show Chat History
 #################################################
 @router.get(
-	"/chat/history/{history_id}",
+	"/chat/settings/{setting_id}",
 	tags=[TAG],
-	response_model=ResponseHistoryShow,
+	response_model=ResponseSetting,
 )
-async def show_chat_history(
-    history_id: str,
-    controller: HistoryController = Depends(get_controller),
+async def show(
+    setting_id: str,
+    controller: IController = Depends(get_controller),
 ):
-	"""Show history"""
+	"""Retrieve settings"""
 	try:
-		result = await controller.show(history_id)
+		result = await controller.show(setting_id)
 
 		# Format Response
 		data = json.dumps({
@@ -117,7 +118,7 @@ async def show_chat_history(
 		raise
 	except BaseException as err:
 		tb = traceback.format_exc()
-		logger.error("[show_chat_history]: %s\n%s", err, tb)
+		logger.error("[controllers.settings.show]: %s\n%s", err, tb)
 		raise HTTPException(
 			status_code=500,
 			detail=f"An unexpected error occurred. {str(err)}"
@@ -127,20 +128,20 @@ async def show_chat_history(
 # Update Chat History
 #################################################
 @router.put(
-	"/chat/history/{history_id}",
+	"/chat/settings/{setting_id}",
 	tags=[TAG],
 	response_model=ResponseUpdate,
 )
-async def update_chat_history(
-	history_id: str,
-	body: ReqBodyHistory,
-	controller: HistoryController = Depends(get_controller),
+async def update(
+	setting_id: str,
+	body: ReqBodySettings,
+	controller: IController = Depends(get_controller),
 ):
-	"""Update history"""
+	"""Update settings"""
 	try:
-		await controller.update(history_id, body)
+		await controller.update(setting_id, body)
 		data = json.dumps({
-			'message': f'History [{history_id}] updated successfully.'
+			'message': f'Setting [{setting_id}] updated successfully.'
 		})
 		# Format Response
 		return Response(status_code=200, content=data)
@@ -149,7 +150,7 @@ async def update_chat_history(
 		raise
 	except BaseException as err:
 		tb = traceback.format_exc()
-		logger.error("[update_chat_history]: %s\n%s", err, tb)
+		logger.error("[controllers.settings.update]: %s\n%s", err, tb)
 		raise HTTPException(
 			status_code=500,
 			detail=f"An unexpected error occurred. {str(err)}"
@@ -159,20 +160,20 @@ async def update_chat_history(
 # Delete Chat History
 #################################################
 @router.delete(
-	"/chat/history/{history_id}",
+	"/chat/settings/{setting_id}",
 	tags=[TAG],
 	status_code=status.HTTP_204_NO_CONTENT,
 )
-async def delete_chat_history(
-	history_id: str,
-	controller: HistoryController = Depends(get_controller),
+async def delete(
+	setting_id: str,
+	controller: IController = Depends(get_controller),
 ):
-	"""Deletes history"""
+	"""Delete settings"""
 	try:
-		await controller.delete(history_id)
+		await controller.delete(setting_id)
 		# Format Response
 		return Response(status_code=204)
 	except BaseException as err:
 		tb = traceback.format_exc()
-		logger.error("[delete_chat_history]: %s\n%s", err, tb)
+		logger.error("[controllers.settings.delete]: %s\n%s", err, tb)
 		raise HTTPException(status_code=404, detail=str(err)) from err

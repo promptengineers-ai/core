@@ -2,8 +2,9 @@
 from .prompt import ReqBodyPromptSystem
 from .chat import (ReqBodyChat, ReqBodyAgentChat, ReqBodyAgentPluginsChat,
                     ReqBodyVectorstoreChat, ReqBodyFunctionChat) 
-from .history import ReqBodyChatHistory, ReqBodyListChatHistory
 from .retrieval import RequestMultiLoader, RequestDataLoader
+from .history import ReqBodyHistory
+from .settings import ReqBodySettings
 
 
 __all__ = [
@@ -13,8 +14,8 @@ __all__ = [
     'ReqBodyAgentPluginsChat',
     'ReqBodyVectorstoreChat',
     'ReqBodyFunctionChat',
-    'ReqBodyChatHistory',
-    'ReqBodyListChatHistory',
+    'ReqBodyHistory',
     'RequestMultiLoader',
-    'RequestDataLoader'
+    'RequestDataLoader',
+    'ReqBodySettings'
 ]
