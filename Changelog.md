@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.0.1
+### Fixed
+  - Needed to add __init__.py to core pacakge
+
 ## 1.0.0
 ### Added
   - feaure/47-segment-modules-based-on-dependencies (2023-12-09)
