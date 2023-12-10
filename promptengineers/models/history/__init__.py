@@ -7,8 +7,11 @@ HISTORY = {
 	"messages": [
 		{"role": "system", "content": "You are a helpful assistant."},
 		{"role": "user", "content": 'Who won the 2001 world series?'},
-		{"role": "assistant", "content": 'The arizona diamondbacks won the 2001 world series.'},
-		{"role": "user", "content": 'Who were the pitchers?'},
+		{
+			"role": "assistant", 
+			"content": 'The arizona diamondbacks won the 2001 world series.',
+			"actions": []
+		},
 	],
 	"setting": "abcd147a12abcdefd9512345",
 	"tags": ["baseball", "world series", "2001"],
@@ -20,8 +23,11 @@ HISTORY_DOCUMENT = {
 	"messages": [
 		{"role": "system", "content": "You are a helpful assistant."},
 		{"role": "user", "content": 'Who won the 2001 world series?'},
-		{"role": "assistant", "content": 'The arizona diamondbacks won the 2001 world series.'},
-		{"role": "user", "content": 'Who were the pitchers?'},
+		{
+			"role": "assistant", 
+			"content": 'The arizona diamondbacks won the 2001 world series.',
+			"actions": []
+		},
 	],
 	"setting": "abcd147a12abcdefd9512345",
 	"tags": ["baseball", "world series", "2001"],

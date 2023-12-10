@@ -41,15 +41,17 @@ class HistoryController(IController):
 	async def create(self):
 		body = await self.request.json()
 		body['user_id'] = ObjectId(self.user_id)
+		if body.get('setting', False):
+			body['setting'] = ObjectId(body['setting'])
 		result = await self.history_service.create(dict(body))
 		return result
 
 	##############################################################
 	### Update Chat History
 	##############################################################
-	async def show(self, chat_id: str):
+	async def show(self, id: str):
 		result = await self.history_service.read_one(
-			{'_id': ObjectId(chat_id), 'user_id': ObjectId(self.user_id)}
+			{'_id': ObjectId(id), 'user_id': ObjectId(self.user_id)}
 		)
 		return result
 
@@ -57,10 +59,12 @@ class HistoryController(IController):
 	##############################################################
 	### Update Chat History
 	##############################################################
-	async def update(self, chat_id: str):
+	async def update(self, id: str, body: any):
 		body = await self.request.json()
+		if body.get('setting', False):
+			body['setting'] = ObjectId(body['setting'])
 		result = await self.history_service.update_one(
-			{'_id': ObjectId(chat_id), 'user_id': ObjectId(self.user_id)},
+			{'_id': ObjectId(id), 'user_id': ObjectId(self.user_id)},
 			dict(body)
 		)
 		return result
@@ -68,8 +72,8 @@ class HistoryController(IController):
 	##############################################################
 	### Delete Chat History
 	##############################################################
-	async def delete(self, chat_id: str):
+	async def delete(self, id: str):
 		result = await self.history_service.delete_one(
-			{'_id': ObjectId(chat_id), 'user_id': ObjectId(self.user_id)}
+			{'_id': ObjectId(id), 'user_id': ObjectId(self.user_id)}
 		)
 		return result
