@@ -11,16 +11,24 @@ setup(
         'ujson',
     ],
     extras_require={
-        'fastapi': [
-            'fastapi',
-            'uvicorn',
-            ## History
-            'motor', 'pymongo', 'cryptography',
-            ## Storage
-            'minio', 'python-multipart',
-            ## Chat & Retrieval
+        'llms':[
             'langchain', 
             'openai', 
+        ],
+        'mongo': [
+            'motor', 
+            'pymongo', 
+            'cryptography',
+        ],
+        'prompts':[
+            'promptengineers[llms]',
+        ],
+        'storage': [
+            'minio', 
+            'python-multipart',
+        ],
+        'retrieval': [
+            'promptengineers[llms]',
             'redis', 
             'pinecone-client', 
             'youtube-transcript-api', 
@@ -29,6 +37,19 @@ setup(
             'tiktoken', 
             'nest_asyncio', 
             'beautifulsoup4',
+        ],
+        'tools': [
+            'promptengineers[llms]',
+        ],
+        'fastapi': [
+            'fastapi',
+            'uvicorn',
+            ## History
+            'promptengineers[mongo]',
+            ## Storage
+            'promptengineers[storage]',
+            ## Chat
+            'promptengineers[retrieval]',
         ],
     },
     author='Ryan Eggleston',
