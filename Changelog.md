@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 1.1.3
+## 1.1.0
 ### Added
   - feature/50-adds-settings-and-updates-history-endpoints (2023-12-10) 
   - Not backwards compatible, affects changes to the history api based on settings api but I'm most likely only one using so staying on v1."
