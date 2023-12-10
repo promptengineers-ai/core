@@ -107,11 +107,26 @@ async def chat(
 	},
 )
 async def agent(
+	request: Request,
 	body: ReqBodyAgentChat,
 	chat_controller: ChatController = Depends(get_controller),
 ):
 	"""Chat endpoint."""
 	try:
+		vectorstore = None
+		if body.retrieval.provider and body.retrieval.index:
+			# Retrieve User Tokens
+			user_id = getattr(request.state, "user_id", None)
+
+			# Retreve Vectorstore
+			vectorstore_strategy = VectorSearchProviderFactory.choose(
+				provider=body.retrieval.provider,
+				user_id=user_id,
+				index_name=body.retrieval.index
+			)
+			vectostore_service = VectorstoreContext(vectorstore_strategy)
+			vectorstore = vectostore_service.load()
+
 		# You can use the stream variable in your function as needed
 		if not body.stream:
 			# Format Response
@@ -119,7 +134,9 @@ async def agent(
 				messages=body.messages,
 				model=body.model,
 				temperature=body.temperature,
-				tools=body.tools
+				tools=body.tools,
+				plugins=body.plugins,
+				vectorstore=vectorstore,
 			)
 			data = ujson.dumps({
 				'message': result['output'],
@@ -144,7 +161,9 @@ async def agent(
 				messages=body.messages,
 				model=body.model,
 				temperature=body.temperature,
-				tools=body.tools
+				tools=body.tools,
+				plugins=body.plugins,
+				vectorstore=vectorstore,
 			),
 			headers={
 				"Cache-Control": "no-cache",
@@ -154,7 +173,7 @@ async def agent(
 		)
 	except Exception as err:
 		tb = traceback.format_exc()
-		logger.error("[routes.chat.agent] Exception: %s\n%s", err, tb)
+		logger.error("[routes.chat.vector_search] Exception: %s\n%s", err, tb)
 		raise HTTPException(status_code=500, detail="Internal Server Error") from err
 
 #################################################

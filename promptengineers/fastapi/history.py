@@ -34,7 +34,7 @@ async def list_chat_histories(
 		result = await controller.index(page, limit)
 		# Format Response
 		data = json.dumps({
-			'chats': result
+			'histories': result
 		}, cls=JSONEncoder)
 		return Response(
 			content=data,
