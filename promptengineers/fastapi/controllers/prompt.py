@@ -1,12 +1,13 @@
 from bson.objectid import ObjectId
 # from fastapi import Request
 
+from promptengineers.core.interfaces.controllers import IController
 from promptengineers.core.interfaces.repos import IUserRepo
 from promptengineers.repos.user import UserRepo
 from promptengineers.mongo.service import MongoService
 from promptengineers.models.request import ReqBodyPromptSystem
 
-class PromptController:
+class PromptController(IController):
 	def __init__(
 		self, 
 		# request: Request = None, 

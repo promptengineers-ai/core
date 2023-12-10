@@ -1,12 +1,13 @@
 from bson.objectid import ObjectId
-# from fastapi import Request
 
+# from fastapi import Request
 from promptengineers.core.interfaces.controllers import IController
 from promptengineers.core.interfaces.repos import IUserRepo
 from promptengineers.repos.user import UserRepo
 from promptengineers.mongo.service import MongoService
+from promptengineers.models.request import ReqBodySettings
 
-class HistoryController(IController):
+class SettingsController(IController):
 	def __init__(
 		self, 
 		# request: Request = None, 
@@ -18,17 +19,17 @@ class HistoryController(IController):
 		self.request = request
 		self.user_id = getattr(request.state, "user_id", None)
 		self.user_repo = user_repo or UserRepo()
-		self.history_service = MongoService(
+		self.settings_service = MongoService(
 			host=self.user_repo.find_token(self.user_id, 'MONGO_CONNECTION'),
 			db=db_name or self.user_repo.find_token(self.user_id, 'MONGO_DB_NAME'),
-			collection=col_name or 'history'
+			collection=col_name or 'settings'
 		)
 
 	##############################################################
-	### Create Chat History
+	### Index
 	##############################################################
 	async def index(self, page: int = 1, limit: int = 10):
-		result = await self.history_service.list_docs(
+		result = await self.settings_service.list_docs(
 			{'user_id': ObjectId(self.user_id)},
 			limit,
 			page
@@ -36,40 +37,40 @@ class HistoryController(IController):
 		return result
 
 	##############################################################
-	### Create Chat History
+	### Create
 	##############################################################
-	async def create(self):
+	async def create(self, body: ReqBodySettings):
 		body = await self.request.json()
 		body['user_id'] = ObjectId(self.user_id)
-		result = await self.history_service.create(dict(body))
+		result = await self.settings_service.create(dict(body))
 		return result
 
 	##############################################################
-	### Update Chat History
+	### Update
 	##############################################################
-	async def show(self, chat_id: str):
-		result = await self.history_service.read_one(
-			{'_id': ObjectId(chat_id), 'user_id': ObjectId(self.user_id)}
+	async def show(self, id: str):
+		result = await self.settings_service.read_one(
+			{'_id': ObjectId(id), 'user_id': ObjectId(self.user_id)}
 		)
 		return result
 
 
 	##############################################################
-	### Update Chat History
+	### Update
 	##############################################################
-	async def update(self, chat_id: str):
+	async def update(self, id: str, body: ReqBodySettings):
 		body = await self.request.json()
-		result = await self.history_service.update_one(
-			{'_id': ObjectId(chat_id), 'user_id': ObjectId(self.user_id)},
+		result = await self.settings_service.update_one(
+			{'_id': ObjectId(id), 'user_id': ObjectId(self.user_id)},
 			dict(body)
 		)
 		return result
 
 	##############################################################
-	### Delete Chat History
+	### Delete
 	##############################################################
-	async def delete(self, chat_id: str):
-		result = await self.history_service.delete_one(
-			{'_id': ObjectId(chat_id), 'user_id': ObjectId(self.user_id)}
+	async def delete(self, id: str):
+		result = await self.settings_service.delete_one(
+			{'_id': ObjectId(id), 'user_id': ObjectId(self.user_id)}
 		)
 		return result

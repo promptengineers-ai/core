@@ -17,7 +17,8 @@ from promptengineers.models.response.stream import (
     RESPONSE_STREAM_CHAT,
 )
 from .prompt import ResponsePromptSystemList, ResponsePromptSystem
-
+from .settings import ResponseSetting, ResponseSettingsList
+from .history import ResponseHistoryIndex, ResponseHistoryShow
 
 class ResponseFileLoader(BaseModel):
     class Config:
@@ -71,6 +72,25 @@ class ResponseFileStorage(BaseModel):
             }
         }
 
+class ResponseCreate(BaseModel):
+    _id: str
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "_id": "5f7d0f0d5c3a3e2e3a3e2e3a",
+            }
+        }
+
+class ResponseUpdate(BaseModel):
+    message: str
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "message": "Resource [{id}] updated successfully.",
+            }
+        }
 
 __all__ = [
     "ResponseStatus",
@@ -86,4 +106,8 @@ __all__ = [
     "ResponseListPineconeVectorStores",
     "ResponsePromptSystemList",
     "ResponsePromptSystem",
+    "ResponseSettingsList",
+    "ResponseSetting",
+    "ResponseHistoryIndex",
+    "ResponseHistoryShow",
 ]
