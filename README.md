@@ -37,10 +37,10 @@ environment variables or for multi-tenanted user application. This is allows for
 ### Retrieval Augemented Generation (RAG) - HTTP Chat
 ```py
 # Import necessary modules and classes
-from promptengineers.config.test import TEST_USER_ID
-from promptengineers.factories.provider VectorSearchProviderFactory
-from promptengineers.strategies.vectorstores import VectorstoreContext
-from promptengineers.utils.valdation import Validator
+from promptengineers.core.config.test import TEST_USER_ID
+from promptengineers.core.valdations import Validator
+from promptengineers.retrieval.factories.provider VectorSearchProviderFactory
+from promptengineers.retrieval.strategies import VectorstoreContext
 
 from server.repos.user import UserRepo
 
