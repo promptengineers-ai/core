@@ -5,7 +5,7 @@ import traceback
 from fastapi import APIRouter, HTTPException, Response, Depends, Request, status
 from promptengineers.fastapi.controllers import HistoryController
 from promptengineers.models.request import ReqBodyHistory
-from promptengineers.models.response import (ResponseHistoryShow, ResponseHistoryIndex, 
+from promptengineers.models.response import (ResponseHistoryShow, ResponseHistoryIndex,
                                             ResponseCreate, ResponseUpdate)
 from promptengineers.mongo.utils import JSONEncoder
 from promptengineers.core.utils import logger

@@ -8,10 +8,10 @@ from promptengineers.mongo.service import MongoService
 
 class HistoryController(IController):
 	def __init__(
-		self, 
-		# request: Request = None, 
+		self,
+		# request: Request = None,
 		request = None,
-		user_repo: IUserRepo = None, 
+		user_repo: IUserRepo = None,
 		db_name: str = None,
 		col_name: str = None
 	):
@@ -38,7 +38,7 @@ class HistoryController(IController):
 	##############################################################
 	### Create Chat History
 	##############################################################
-	async def create(self):
+	async def create(self, body: any):
 		body = await self.request.json()
 		body['user_id'] = ObjectId(self.user_id)
 		if body.get('setting', False):
@@ -49,9 +49,9 @@ class HistoryController(IController):
 	##############################################################
 	### Update Chat History
 	##############################################################
-	async def show(self, id: str):
+	async def show(self, history_id: str):
 		result = await self.history_service.read_one(
-			{'_id': ObjectId(id), 'user_id': ObjectId(self.user_id)}
+			{'_id': ObjectId(history_id), 'user_id': ObjectId(self.user_id)}
 		)
 		return result
 
@@ -59,12 +59,12 @@ class HistoryController(IController):
 	##############################################################
 	### Update Chat History
 	##############################################################
-	async def update(self, id: str, body: any):
+	async def update(self, history_id: str, body: any):
 		body = await self.request.json()
 		if body.get('setting', False):
 			body['setting'] = ObjectId(body['setting'])
 		result = await self.history_service.update_one(
-			{'_id': ObjectId(id), 'user_id': ObjectId(self.user_id)},
+			{'_id': ObjectId(history_id), 'user_id': ObjectId(self.user_id)},
 			dict(body)
 		)
 		return result
@@ -72,8 +72,8 @@ class HistoryController(IController):
 	##############################################################
 	### Delete Chat History
 	##############################################################
-	async def delete(self, id: str):
+	async def delete(self, history_id: str):
 		result = await self.history_service.delete_one(
-			{'_id': ObjectId(id), 'user_id': ObjectId(self.user_id)}
+			{'_id': ObjectId(history_id), 'user_id': ObjectId(self.user_id)}
 		)
 		return result
