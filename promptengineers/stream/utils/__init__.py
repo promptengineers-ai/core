@@ -19,7 +19,7 @@ async def wrap_done(fn_name: Awaitable, event: asyncio.Event):
         # Signal the aiter to stop.
         event.set()
 
-def token_stream(token: str = None, action_type: str = None):
+def token_stream(token: str or dict = None, action_type: str = None):
     """ Use server-sent-events to stream the response"""
     if not token and not action_type:
         data = {
@@ -35,6 +35,13 @@ def token_stream(token: str = None, action_type: str = None):
             'type': 'tool'
         }
         logger.debug('[utils.stream.token_stream] Action: %s', str(data))
+    elif action_type == 'doc':
+        data = {
+            'sender': 'assistant',
+            'message': token,
+            'type': 'doc'
+        }
+        logger.debug('[utils.stream.token_stream] Document: %s', str(data))
     elif action_type == 'log':
         data = {
             'sender': 'assistant',

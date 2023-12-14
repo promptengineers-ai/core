@@ -232,7 +232,8 @@ async def vector_search(
 				vectorstore=vectorstore,
 			)
 			data = ujson.dumps({
-				'message': result,
+				'message': result['answer'],
+				'documents': result['source_documents'],
 				'usage': {
 					'total_tokens': cb.total_tokens,
 					'prompt_tokens': cb.prompt_tokens,
