@@ -19,7 +19,7 @@ class ReqBodyChat(BaseModel):  # pylint: disable=too-few-public-methods
     class Config:  # pylint: disable=too-few-public-methods
         """A message to send to the chatbot."""
 
-        json_schema_extra = {
+        schema_extra = {
             "example": {
                 "model": "gpt-3.5-turbo",
                 "temperature": 0.8,
@@ -39,14 +39,14 @@ class ReqBodyChat(BaseModel):  # pylint: disable=too-few-public-methods
 class ReqBodyAgentChat(ReqBodyChat):  # pylint: disable=too-few-public-methods
     """A message to send to the chatbot."""
 
-    tools: list[str] = None    
+    tools: list[str] = None
     plugins: list[str] = None
     retrieval: Retrieval = None
 
     class Config:  # pylint: disable=too-few-public-methods
         """A message to send to the chatbot."""
 
-        json_schema_extra = {
+        schema_extra = {
             "example": {
                 "model": "gpt-3.5-turbo",
                 "temperature": 0.8,
@@ -76,7 +76,7 @@ class ReqBodyAgentPluginsChat(ReqBodyChat):  # pylint: disable=too-few-public-me
     class Config:  # pylint: disable=too-few-public-methods
         """A message to send to the chatbot."""
 
-        json_schema_extra = {
+        schema_extra = {
             "example": {
                 "model": "gpt-3.5-turbo-16k",
                 "temperature": 0.8,
@@ -101,7 +101,7 @@ class ReqBodyVectorstoreChat(ReqBodyChat):  # pylint: disable=too-few-public-met
     class Config:  # pylint: disable=too-few-public-methods
         """A message to send to the chatbot."""
 
-        json_schema_extra = {
+        schema_extra = {
             "example": {
                 "provider": "pinecone",
                 "vectorstore": "Formio",
@@ -124,7 +124,7 @@ class ReqBodyFunctionChat(ReqBodyChat):  # pylint: disable=too-few-public-method
     class Config:  # pylint: disable=too-few-public-methods
         """A message to send to the chatbot."""
 
-        json_schema_extra = {
+        schema_extra = {
             "example": {
                 "model": "gpt-3.5-turbo",
                 "temperature": 0.8,
