@@ -26,11 +26,11 @@ validator = Validator()
 
 class ChatController:
 	def __init__(
-		self, 
+		self,
 		user_id: str = None,
-		# request: Request = None, 
+		# request: Request = None,
 		request = None,
-		user_repo: IUserRepo = None, 
+		user_repo: IUserRepo = None,
 		available_tools: dict[str, Any] = None
 	):
 		self.request = request
@@ -267,10 +267,10 @@ class ChatController:
 		with get_openai_callback() as cb:
 			# Retrieve the conversation
 			chain = ChainService(model).conversation_retrieval(
-				system_message=system_message, vectorstore=vectorstore
+				system_message=system_message, vectorstore=vectorstore, chat_history=chat_history
 			)
 			# Begin a task that runs in the background.
-			response = chain.run(filtered_messages[-1])
+			response = chain(filtered_messages[-1], return_only_outputs=True)
 		return response, cb
 
 	##############################################################################
@@ -405,7 +405,7 @@ class ChatController:
 								tool_args = ujson.loads(args)
 							else:
 								tool_args =  ujson.loads(args)['__arg1']
-							
+
 							yield token_stream(f"Invoking: `{tool}` with `{tool_args}`", 'log')
 		yield token_stream()
 
@@ -475,7 +475,7 @@ class ChatController:
 		# Get Tokens
 		api_key = self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
 		# Create the callback
-		callback = AsyncIteratorCallbackHandler()
+		callback = AgentStreamCallbackHandler()
 		# Create the model
 		if model in ACCEPTED_OPENAI_MODELS:
 			model_service = ModelContext(strategy=OpenAIStrategy(api_key=api_key))
@@ -486,49 +486,37 @@ class ChatController:
 			streaming=True,
 			callbacks=[callback]
 		)
-		query = {
-			'input': filtered_messages[-1], 
-			'chat_history': chat_history
-		}
 		# Retrieve the conversation
 		qa_chain = ChainService(model).conversation_retrieval(
 			system_message=system_message,
 			chat_history=chat_history,
 			vectorstore=vectorstore,
+			callbacks=[callback]
 		)
-		
-		# # Begin a task that runs in the background.
-		# task = asyncio.create_task(wrap_done(
-		# 	qa_chain.acall(query),
-		# 	callback.done),
-		# )
-		# # Yield the tokens as they come in.
-		# async for token in callback.aiter():
-		# 	yield token_stream(token)
-		# yield token_stream()
-		# await task
-		
-		runnable = qa_chain.astream_log(query)
+
+		runnable = qa_chain.astream_log(filtered_messages[-1])
+		docs_processed = False
 		async for chunk in runnable:
 			operation = chunk.ops[0]['value']
-			if operation:
-				if type(operation) == str:
-					filled_chunk = operation
-					if filled_chunk:
-						yield token_stream(filled_chunk)
-				else:
-					generations = operation.get('generations', False)
-					if generations:
-						function_call = generations[0][0].get('message', {}).additional_kwargs.get('function_call', {})
-						tool = function_call.get('name', None)
-						if tool:
-							yield token_stream(tool, 'tool')
-						args = function_call.get('arguments', None)
-						if args:
-							if type(args) == str:
-								tool_args = ujson.loads(args)
-							else:
-								tool_args =  ujson.loads(args)['__arg1']
-							
-							yield token_stream(f"Invoking: `{tool}` with `{tool_args}`", 'log')
+			# print(operation)
+			async for chunk in runnable:
+				operation = chunk.ops[0]['value']
+				return_output = False
+
+				if isinstance(operation, dict):
+					docs = operation.get('documents')
+					if docs:
+						for doc in docs:
+							yield token_stream({
+								'page_content': doc.page_content,
+								'metadata': doc.metadata,
+							}, 'doc')
+						docs_processed = True  # Set this flag when docs are processed
+
+				# Check if docs have been processed at least once
+				if docs_processed:
+					return_output = True
+
+				if operation and isinstance(operation, str) and return_output:
+					yield token_stream(operation)
 		yield token_stream()

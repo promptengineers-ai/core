@@ -8,10 +8,10 @@ from promptengineers.mongo.service import MongoService
 
 class HistoryController(IController):
 	def __init__(
-		self, 
-		# request: Request = None, 
+		self,
+		# request: Request = None,
 		request = None,
-		user_repo: IUserRepo = None, 
+		user_repo: IUserRepo = None,
 		db_name: str = None,
 		col_name: str = None
 	):
