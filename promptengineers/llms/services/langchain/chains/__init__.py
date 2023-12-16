@@ -221,7 +221,7 @@ class ChainService:
 		return ConversationalRetrievalChain.from_llm(
 			llm=self.model,
 			condense_question_llm=self.model,
-			retriever=vectorstore.as_retriever(),
+			retriever=vectorstore.as_retriever(search_kwargs={'k': 1}),
 			memory=memory,
 			combine_docs_chain_kwargs={"prompt": get_retrieval_template(system_message)},
 			return_source_documents=True,
