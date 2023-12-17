@@ -73,12 +73,14 @@ async def create_vectorstore(
 )
 async def create_vectorstore_from_file(
 	index_name: str = Form(...),
+	provider: str = Form(...),
 	files: List[UploadFile] = File(...),
 	controller: VectorSearchController = Depends(get_controller),
 ):
 	"""File Loader endpoint."""
 	try:
 		await controller.create_vectorstore_from_files(
+			provider,
 			index_name,
 			files
 		)

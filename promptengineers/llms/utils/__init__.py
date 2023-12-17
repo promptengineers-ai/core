@@ -1,5 +1,5 @@
 """Utilites for Chains"""
-# from langchain.schema.agent import AgentActionMessageLog
+from langchain_core.documents.base import Document
 
 def get_chat_history(inputs: tuple) -> str:
     """Formats the chat history into a readable format for the chatbot"""
@@ -7,6 +7,12 @@ def get_chat_history(inputs: tuple) -> str:
     for human, assistant in inputs:
         res.append(f"Human: {human}\nAssistant: {assistant}")
     return "\n".join(res)
+
+def combine_documents(documents: list[Document]):
+    combined_content = ""
+    for doc in documents:
+        combined_content += doc.page_content + "\n"
+    return combined_content
 
 def retrieve_system_message(messages):
     """Retrieve the system message"""

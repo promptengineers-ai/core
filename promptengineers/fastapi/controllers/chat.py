@@ -16,11 +16,11 @@ from promptengineers.llms.services.openai import openai_chat_functions_model
 from promptengineers.llms.services.langchain.callbacks import AgentStreamCallbackHandler
 from promptengineers.llms.services.langchain.chains import ChainService
 from promptengineers.llms.strategies import OllamaStrategy, OpenAIStrategy, ModelContext
-from promptengineers.llms.utils import retrieve_chat_messages, retrieve_system_message, get_chat_history
+from promptengineers.llms.utils import retrieve_chat_messages, retrieve_system_message, get_chat_history, combine_documents
 from promptengineers.retrieval.strategies import VectorstoreContext
 from promptengineers.stream.utils import token_stream, wrap_done
 from promptengineers.core.validations import Validator
-from promptengineers.prompts.templates import get_system_template
+from promptengineers.prompts.templates import get_system_template, get_retrieval_template
 
 validator = Validator()
 
@@ -479,44 +479,73 @@ class ChatController:
 		# Create the model
 		if model in ACCEPTED_OPENAI_MODELS:
 			model_service = ModelContext(strategy=OpenAIStrategy(api_key=api_key))
-
-		model = model_service.chat(
-			model_name=model,
-			temperature=temperature,
-			streaming=True,
-			callbacks=[callback]
-		)
-		# Retrieve the conversation
-		qa_chain = ChainService(model).conversation_retrieval(
-			system_message=system_message,
-			chat_history=chat_history,
-			vectorstore=vectorstore,
-			callbacks=[callback]
-		)
-
-		runnable = qa_chain.astream_log(filtered_messages[-1])
-		docs_processed = False
-		async for chunk in runnable:
-			operation = chunk.ops[0]['value']
-			# print(operation)
+			llm = model_service.chat(
+				model_name=model,
+				temperature=temperature,
+				streaming=True,
+				callbacks=[callback]
+			)
+			# Retrieve the conversation
+			qa_chain = ChainService(llm).conversation_retrieval(
+				system_message=system_message,
+				chat_history=chat_history,
+				vectorstore=vectorstore,
+				callbacks=[callback]
+			)
+			runnable = qa_chain.astream_log(filtered_messages[-1])
+			docs_processed = False
 			async for chunk in runnable:
 				operation = chunk.ops[0]['value']
-				return_output = False
+				# print(operation)
+				async for chunk in runnable:
+					operation = chunk.ops[0]['value']
+					return_output = False
 
-				if isinstance(operation, dict):
-					docs = operation.get('documents')
-					if docs:
-						for doc in docs:
-							yield token_stream({
-								'page_content': doc.page_content,
-								'metadata': doc.metadata,
-							}, 'doc')
-						docs_processed = True  # Set this flag when docs are processed
+					if isinstance(operation, dict):
+						docs = operation.get('documents')
+						if docs:
+							for doc in docs:
+								yield token_stream({
+									'page_content': doc.page_content,
+									'metadata': doc.metadata,
+								}, 'doc')
+							docs_processed = True  # Set this flag when docs are processed
 
-				# Check if docs have been processed at least once
-				if docs_processed:
-					return_output = True
+					# Check if docs have been processed at least once
+					if docs_processed:
+						return_output = True
 
-				if operation and isinstance(operation, str) and return_output:
-					yield token_stream(operation)
-		yield token_stream()
+					if operation and isinstance(operation, str) and return_output:
+						yield token_stream(operation)
+			yield token_stream()
+
+		elif model in ACCEPTED_OLLAMA_MODELS:
+			base_url = self.user_repo.find_token(self.user_id, 'OLLAMA_BASE_URL')
+			if base_url:
+				strategy = OllamaStrategy(base_url=base_url)
+			else:
+				strategy = OllamaStrategy()
+			model_service = ModelContext(strategy=strategy)
+			callback = AgentStreamCallbackHandler()
+			llm = model_service.chat(
+				model_name=model,
+				temperature=temperature,
+				streaming=True,
+				callbacks=[callback]
+			)
+			question = filtered_messages[-1]
+			template = get_retrieval_template(system_message)
+			history = get_chat_history(chat_history)
+			documents = vectorstore.similarity_search(question)
+			context = '\n'.join([doc.page_content for doc in documents])
+			prompt = template.format(
+				chat_history=history,
+				context=context,
+				question=question
+			)
+			# Yield the tokens as they come in.
+			for token in llm._stream(prompt):
+				yield token_stream(token.text)
+			yield token_stream()
+		else:
+			raise NotImplementedError(f"Model {model} not implemented")
