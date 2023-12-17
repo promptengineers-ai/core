@@ -11,6 +11,7 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 
 from promptengineers.core.config.loaders import FileLoaderType
 from promptengineers.core.config.test import TEST_USER_ID
+from promptengineers.retrieval.factories.embedding import EmbeddingFactory
 from promptengineers.retrieval.factories.loader import LoaderFactory
 from promptengineers.core.interfaces.repos import IUserRepo
 from promptengineers.repos.user import UserRepo
@@ -20,6 +21,7 @@ from promptengineers.storage.services import StorageService
 from promptengineers.core.utils import logger
 from promptengineers.core.validations import Validator
 from promptengineers.retrieval.utils import create_faiss_vectorstore
+from promptengineers.core.config.llm import OllamaModels
 
 validator = Validator()
 user_repo = UserRepo()
@@ -28,11 +30,11 @@ user_repo = UserRepo()
 ### Process File
 ##############################################################
 def process_file(
-    vectrostore_name: str,
-    tmpdirname: str,
-    file: UploadFile,
-    embeddings: OpenAIEmbeddings,
-    pinecone_service: PineconeService,
+	index_name: str,
+	tmpdirname: str,
+	file: UploadFile,
+	embeddings,
+	pinecone_service: PineconeService,
 ):
 	try:
 		file_path = os.path.join(tmpdirname, file.filename)
@@ -47,7 +49,7 @@ def process_file(
 			f.write(file.file.read())  # write the file to the temporary directory
 		doc_loader = LoaderFactory.create_loader(file_extension_cleaned, {'file_path': file_path})
 
-		pinecone_service.from_documents([doc_loader], embeddings, namespace=vectrostore_name)
+		pinecone_service.from_documents([doc_loader], embeddings, namespace=index_name)
 	except HTTPException:
 		raise  # Re-raise the HTTPException without modifying it
 	except Exception as e:
@@ -80,21 +82,36 @@ def accumulate_files(files, user_id, tokens):
 def accumulate_loaders(body, files=None, tmpdirname=None):
 	loaders = []
 	for loader in dict(body).get('loaders', []):
-		loader_type = loader['type']  # Accessing the type using dictionary key
+		try:
+			# First, try accessing as if loader is a dictionary
+			loader_type = loader['type']
+		except TypeError:
+			# If it fails, then access it as an attribute
+			loader_type = loader.type
 		loader_data = {}
 		if loader_type == 'copy':
-			loader_data = {'text': loader['text']}
+			try:
+				loader_data = {'text': loader['text']}
+			except TypeError:
+				loader_data = {'text': loader.text}
 		elif loader_type == 'yt':
-			loader_data = {'ytId': loader['ytId']}
+			try:
+				loader_data = {'ytId': loader['ytId']}
+			except TypeError:
+				loader_data = {'ytId': loader.ytId}
 		elif loader_type in ['ethereum', 'polygon']:
-			loader_data = {'contract_address': loader['contract_address']}
+			try:
+				loader_data = {'contract_address': loader['contract_address']}
+			except TypeError:
+				loader_data = {'contract_address': loader.contract_address}
 		else:
-			loader_data = {'urls': loader['urls']}
+			try:
+				loader_data = {'urls': loader['urls']}
+			except TypeError:
+				loader_data = {'urls': loader.urls}
 
-		doc_loader = LoaderFactory.create_loader(
-			loader['type'],  # Again using dictionary key access
-			loader_data
-		)
+
+		doc_loader = LoaderFactory.create_loader(loader_type,  loader_data)
 		loaders.append(doc_loader)
 
 	if tmpdirname:
@@ -165,15 +182,15 @@ class VectorSearchController:
 	##############################################################
 	async def create_multi_loader_vectorstore(self, body):
 		"""Create a vectorstore from multiple loaders."""
-		passed_file_names = dict(body).get('files', [])
+		req_body = dict(body)
+		passed_file_names = req_body.get('files', [])
 		pinecone_keys = ['PINECONE_KEY', 'PINECONE_ENV', 'PINECONE_INDEX', 'OPENAI_API_KEY']
 		redis_keys = ['REDIS_URL', 'OPENAI_API_KEY']
-
 		if not passed_file_names:
-			if dict(body).get('provider') == 'pinecone':
+			if req_body.get('provider') == 'pinecone':
 				tokens = self.user_repo.find_token(self.user_id, pinecone_keys)
+				embeddings = EmbeddingFactory(req_body.get('embedding'), tokens.get('OPENAI_API_KEY'))
 				validator.validate_api_keys(tokens, pinecone_keys)
-				embeddings = OpenAIEmbeddings(openai_api_key=tokens.get('OPENAI_API_KEY'))
 				pinecone_service = PineconeService(
 					api_key=tokens.get('PINECONE_KEY'),
 					env=tokens.get('PINECONE_ENV'),
@@ -186,16 +203,17 @@ class VectorSearchController:
 					namespace=dict(body).get('index_name')
 				)
 
-			if dict(body).get('provider') == 'redis':
+			if req_body.get('provider') == 'redis':
 				tokens = self.user_repo.find_token(self.user_id, redis_keys)
 				validator.validate_api_keys(tokens, redis_keys)
+				embeddings = EmbeddingFactory(req_body.get('embedding'), tokens.get('OPENAI_API_KEY'))
 				redis_service = RedisService(
-					openai_api_key=tokens.get('OPENAI_API_KEY'),
+					embeddings=embeddings(),
 					redis_url=tokens.get('REDIS_URL'),
-					index_name=dict(body).get('index_name'),
+					index_name=req_body.get('index_name'),
 				)
 				loaders = accumulate_loaders(body)
-				redis_service.from_documents(loaders)
+				redis_service.add_docs(loaders)
 		else:
 			aws_keys = ['ACCESS_KEY_ID', 'ACCESS_SECRET_KEY', 'BUCKET']
 			tokens = self.user_repo.find_token(self.user_id, [*pinecone_keys, *aws_keys])
@@ -209,35 +227,36 @@ class VectorSearchController:
 				# Your logic here to save uploaded files to tmpdirname
 				loaders = accumulate_loaders(body, files, tmpdirname)
 
-				if dict(body).get('provider') == 'faiss':
-					faiss_vectorstore(loaders, tmpdirname, self.user_id, dict(body).get('index_name'), tokens)
+				if req_body.get('provider') == 'faiss':
+					faiss_vectorstore(loaders, tmpdirname, self.user_id, req_body.get('index_name'), tokens)
 
-				if dict(body).get('provider') == 'pinecone':
+				if req_body.get('provider') == 'pinecone':
 					embeddings = OpenAIEmbeddings(openai_api_key=tokens.get('OPENAI_API_KEY'))
 					pinecone_service = PineconeService(
 						api_key=tokens.get('PINECONE_KEY'),
 						env=tokens.get('PINECONE_ENV'),
 						index_name=tokens.get('PINECONE_INDEX'),
 					)
-					pinecone_service.from_documents(loaders, embeddings, namespace=dict(body).get('index_name'))
+					pinecone_service.from_documents(loaders, embeddings, namespace=req_body.get('index_name'))
 
-				if dict(body).get('provider') == 'redis':
+				if req_body.get('provider') == 'redis':
 					tokens = self.user_repo.find_token(self.user_id, redis_keys)
 					validator.validate_api_keys(tokens, redis_keys)
 					redis_service = RedisService(
 						openai_api_key=tokens.get('OPENAI_API_KEY'),
 						redis_url=tokens.get('REDIS_URL'),
-						index_name=dict(body).get('index_name'),
+						index_name=req_body.get('index_name'),
 					)
 					loaders = accumulate_loaders(body)
-					redis_service.from_documents(loaders)
+					redis_service.add_docs(loaders)
 
 	##############################################################
 	### Create a Vectorstore from files
 	##############################################################
 	async def create_vectorstore_from_files(
 		self,
-		vectrostore_name: str,
+		provider: str,
+		index: str,
 		files: List[UploadFile] = File(...),
 		threaded: bool = True,
 	):
@@ -252,18 +271,19 @@ class VectorSearchController:
 				raise HTTPException(status_code=400, detail=f"Invalid file type: {file_extension_cleaned}")
 
 		## Get Tokens
-		keys = ['PINECONE_KEY', 'PINECONE_ENV', 'PINECONE_INDEX', 'OPENAI_API_KEY']
-		tokens = self.user_repo.find_token(self.user_id, keys)
-		## Check for token, else throw error
-		validator.validate_api_keys(tokens, keys)
+		if provider == 'pinecone':
+			keys = ['PINECONE_KEY', 'PINECONE_ENV', 'PINECONE_INDEX', 'OPENAI_API_KEY']
+			tokens = self.user_repo.find_token(self.user_id, keys)
+			## Check for token, else throw error
+			validator.validate_api_keys(tokens, keys)
 
-		## Get Embeddings and Pinecone Service
-		embeddings = OpenAIEmbeddings(openai_api_key=tokens.get('OPENAI_API_KEY'))
-		pinecone_service = PineconeService(
-			api_key=tokens.get('PINECONE_KEY'),
-			env=tokens.get('PINECONE_ENV'),
-			index_name=tokens.get('PINECONE_INDEX'),
-		)
+			## Get Embeddings and Pinecone Service
+			embeddings = OpenAIEmbeddings(openai_api_key=tokens.get('OPENAI_API_KEY'))
+			pinecone_service = PineconeService(
+				api_key=tokens.get('PINECONE_KEY'),
+				env=tokens.get('PINECONE_ENV'),
+				index_name=tokens.get('PINECONE_INDEX'),
+			)
 
 		## Create a temporary directory
 		with tempfile.TemporaryDirectory() as tmpdirname:
@@ -277,7 +297,7 @@ class VectorSearchController:
 					while not file_queue.empty():
 						file = file_queue.get()
 						try:
-							process_file(vectrostore_name, tmpdirname, file, embeddings, pinecone_service)
+							process_file(index, tmpdirname, file, embeddings, pinecone_service)
 						finally:
 							file_queue.task_done()
 
@@ -289,7 +309,7 @@ class VectorSearchController:
 				file_queue.join()  # Wait for all files to be processed
 			else:
 				for file in files:
-					process_file(vectrostore_name, tmpdirname, file, embeddings, pinecone_service)
+					process_file(index, tmpdirname, file, embeddings, pinecone_service)
 
 
 	##############################################################

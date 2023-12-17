@@ -533,23 +533,10 @@ class ChatController:
 				streaming=True,
 				callbacks=[callback]
 			)
-			#################################################################
-			# qa_chain = ChainService(llm).conversation_retrieval(
-			# 	system_message=system_message,
-			# 	chat_history=chat_history,
-			# 	vectorstore=vectorstore,
-			# 	callbacks=[callback]
-			# )
-			# runnable = qa_chain.astream_log(filtered_messages[-1])
-			# docs_processed = False
-			# async for chunk in runnable:
-			# 	operation = chunk.ops[0]['value']
-			# 	print(operation)
-			#################################################################
 			question = filtered_messages[-1]
 			template = get_retrieval_template(system_message)
 			history = get_chat_history(chat_history)
-			documents = vectorstore.search(question, 'similarity')
+			documents = vectorstore.similarity_search(question)
 			context = '\n'.join([doc.page_content for doc in documents])
 			prompt = template.format(
 				chat_history=history,

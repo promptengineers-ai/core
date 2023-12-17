@@ -4,35 +4,43 @@ from promptengineers.core.validations import Validator
 from promptengineers.repos.user import UserRepo
 from promptengineers.retrieval.strategies import PineconeStrategy, RedisStrategy
 
-validator = Validator()
-
-class VectorSearchProviderFactory:
-	@staticmethod
-	def choose(
-		provider: ('redis', 'pinecone'),
-		user_id: str,
-		index_name: str,
-		user_repo: IUserRepo = UserRepo(),
+class RetreivalFactory:
+	def __init__(
+			self,
+			provider: ('redis', 'pinecone'), 
+			index: str,
+			embeddings,
+			user_id: str,
+			user_repo: IUserRepo = UserRepo()
 	):
-		if provider == 'pinecone':
-			required_keys = ['OPENAI_API_KEY', 'PINECONE_KEY', 'PINECONE_ENV', 'PINECONE_INDEX']
-			tokens = user_repo.find_token(user_id, [*required_keys, 'PROMPTLAYER_API_KEY'])
-			validator.validate_api_keys(tokens, required_keys)
-			vectorstore_strategy = PineconeStrategy(
-				openai_api_key=tokens.get(required_keys[0]),
-				api_key=tokens.get(required_keys[1]),
-				env=tokens.get(required_keys[2]),
-				index_name=tokens.get(required_keys[3]),
-				namespace=index_name,
-			)
+		self.provider = provider
+		self.index = index
+		self.embeddings = embeddings
+		self.user_id = user_id
+		self.user_repo = user_repo
+		self.validator = Validator()
 
-		if provider == 'redis':
-			required_keys = ['OPENAI_API_KEY', 'REDIS_URL']
-			tokens = user_repo.find_token(user_id, [*required_keys, 'PROMPTLAYER_API_KEY'])
-			validator.validate_api_keys(tokens, required_keys)
-			vectorstore_strategy = RedisStrategy(
-				openai_api_key=tokens.get(required_keys[0]),
-				redis_url=tokens.get(required_keys[1]),
-				index_name=index_name,
+	def __call__(self) -> PineconeStrategy | RedisStrategy:
+		if self.provider in 'pinecone':
+			required_keys = ['PINECONE_KEY', 'PINECONE_ENV', 'PINECONE_INDEX']
+			tokens = self.user_repo.find_token(self.user_id, required_keys)
+			self.validator.validate_api_keys(tokens, required_keys)
+			vectorstore_strategy = PineconeStrategy(
+				embeddings=self.embeddings,
+				api_key=tokens.get(required_keys[0]),
+				env=tokens.get(required_keys[1]),
+				index_name=tokens.get(required_keys[2]),
+				namespace=self.index,
 			)
+		elif self.provider in 'redis':
+			required_keys = ['REDIS_URL']
+			tokens = self.user_repo.find_token(self.user_id, required_keys)
+			self.validator.validate_api_keys(tokens, required_keys)
+			vectorstore_strategy = RedisStrategy(
+				redis_url=tokens.get(required_keys[0]),
+				index_name=self.index,
+				embeddings=self.embeddings,
+			)
+		else:
+			raise ValueError(f"Invalid index provider {self.provider}")
 		return vectorstore_strategy

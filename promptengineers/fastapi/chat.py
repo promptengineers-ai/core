@@ -6,7 +6,7 @@ from fastapi.responses import StreamingResponse
 
 from promptengineers.fastapi.controllers import ChatController
 from promptengineers.core.exceptions import ValidationException
-from promptengineers.retrieval.factories.provider import VectorSearchProviderFactory
+from promptengineers.retrieval.factories import RetreivalFactory, EmbeddingFactory
 from promptengineers.models.request import ReqBodyChat, ReqBodyAgentChat, ReqBodyVectorstoreChat
 from promptengineers.models.response import (ResponseChat, ResponseAgentChat, ResponseVectorstoreChat,
 									RESPONSE_STREAM_AGENT_CHAT, RESPONSE_STREAM_VECTORSTORE_CHAT,
@@ -118,11 +118,18 @@ async def agent(
 			# Retrieve User Tokens
 			user_id = getattr(request.state, "user_id", None)
 
+			# Retrieve User Tokens
+			token = chat_controller.user_repo.find_token(user_id, ['OPENAI_API_KEY']).get('OPENAI_API_KEY')
+
+			# Generate Embeddings
+			embeddings = EmbeddingFactory(body.model, token)
+
 			# Retreve Vectorstore
-			vectorstore_strategy = VectorSearchProviderFactory.choose(
+			vectorstore_strategy = RetreivalFactory(
 				provider=body.retrieval.provider,
+				index=body.retrieval.index,
+				embeddings=embeddings(),
 				user_id=user_id,
-				index_name=body.retrieval.index
 			)
 			vectostore_service = VectorstoreContext(vectorstore_strategy)
 			vectorstore = vectostore_service.load()
@@ -206,11 +213,18 @@ async def vector_search(
 		# Retrieve User Tokens
 		user_id = getattr(request.state, "user_id", None)
 
+		# Retrieve User Tokens
+		token = chat_controller.user_repo.find_token(user_id, ['OPENAI_API_KEY']).get('OPENAI_API_KEY')
+
+		# Generate Embeddings
+		embeddings = EmbeddingFactory(body.model, token)
+
 		# Retreve Vectorstore
-		vectorstore_strategy = VectorSearchProviderFactory.choose(
+		vectorstore_strategy = RetreivalFactory(
 			provider=body.provider,
+			index=body.vectorstore,
+			embeddings=embeddings(),
 			user_id=user_id,
-			index_name=body.vectorstore
 		)
 		vectostore_service = VectorstoreContext(vectorstore_strategy)
 		vectorstore = vectostore_service.load()
