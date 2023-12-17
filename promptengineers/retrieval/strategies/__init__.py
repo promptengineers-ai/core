@@ -2,10 +2,7 @@
 from abc import ABC, abstractmethod
 # from io import BytesIO
 
-from langchain.embeddings.openai import OpenAIEmbeddings
-
-from promptengineers.retrieval.services.pinecone import PineconeService
-from promptengineers.retrieval.services.redis import RedisService
+from promptengineers.retrieval.services import PineconeService, RedisService
 
 
 # Define the strategy interface
@@ -42,27 +39,26 @@ class VectorstoreStrategy(ABC):
 class PineconeStrategy(VectorstoreStrategy):
     def __init__(
         self,
-        openai_api_key: str,
         api_key: str,
         env: str,
         namespace: str,
         index_name: str,
+        embeddings = None,
     ):
         self.api_key = api_key
-        self.openai_api_key = openai_api_key
         self.env = env
         self.namespace = namespace
         self.index_name = index_name
+        self.embeddings = embeddings
 
     def load(self):
-        embeddings = OpenAIEmbeddings(openai_api_key=self.openai_api_key)
         pinecone_service = PineconeService(
 			api_key=self.api_key,
 			env=self.env,
 			index_name=self.index_name,
 		)
         return pinecone_service.from_existing(
-            embeddings,
+            embeddings=self.embeddings,
             namespace=self.namespace
         )
 
@@ -72,21 +68,21 @@ class PineconeStrategy(VectorstoreStrategy):
 class RedisStrategy(VectorstoreStrategy):
     def __init__(
         self,
-        openai_api_key: str,
         redis_url: str,
         index_name: str,
-        index_schema: dict = None,
+        index_schema: dict = {"page_content": "TEXT", "metadata": "HASH"},
+        embeddings = None,
     ):
         self.redis_url = redis_url
-        self.openai_api_key = openai_api_key
         self.index_name = index_name
         self.index_schema = index_schema
+        self.embeddings = embeddings
 
     def load(self):
         redis_service = RedisService(
 			redis_url=self.redis_url,
 			index_name=self.index_name,
-			openai_api_key=self.openai_api_key,
+            embeddings=self.embeddings
 		)
         return redis_service.from_existing(
             schema=self.index_schema

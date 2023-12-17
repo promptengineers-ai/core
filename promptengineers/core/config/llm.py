@@ -10,9 +10,11 @@ class OpenAIModels(Enum):
     GPT_4_32K_MARCH = 'gpt-4-32k-0314'
     GPT_4_TURBO = 'gpt-4-1106-preview'
     GPT_4_VISION = 'gpt-4-vision-preview'
+    EMBED_ADA = 'text-embedding-ada-002'
 
 class OllamaModels(Enum):
     LLAMA_2 = 'llama2'
+    LLAMA_2_7B = 'llama2:7b'
     CODE_LLAMA = 'codellama'
     VICUNA = 'vicuna'
     MISTRAL = 'mistral'
@@ -22,11 +24,14 @@ ACCEPTED_OPENAI_MODELS = {
     OpenAIModels.GPT_3_5_TURBO_16K.value,
     OpenAIModels.GPT_4.value,
     OpenAIModels.GPT_4_32K.value,
-    OpenAIModels.GPT_4_TURBO.value
+    OpenAIModels.GPT_4_TURBO.value,
+    OpenAIModels.GPT_4_VISION.value,
+    OpenAIModels.EMBED_ADA.value
 }
 
 ACCEPTED_OLLAMA_MODELS = {
     OllamaModels.LLAMA_2.value,
+    OllamaModels.LLAMA_2_7B.value,
     OllamaModels.CODE_LLAMA.value,
     OllamaModels.VICUNA.value,
     OllamaModels.MISTRAL.value

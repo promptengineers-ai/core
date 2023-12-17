@@ -12,6 +12,7 @@ from promptengineers.models.loader import (
 class RequestMultiLoader(BaseModel):
     index_name: str = Field(...)
     provider: str = ("pinecone", "redis")
+    embedding: str = ("text-embedding-ada-002", "llama2:7b", "llama2")
     files: List[str] or None = Field(...)
     loaders: List[
         Union[TypeUrlLoader, YoutubeLoader, BlockchainLoader, CopyPasteLoader]
@@ -21,6 +22,7 @@ class RequestMultiLoader(BaseModel):
         json_schema_extra = {
             "example": {
                 "provider": "pinecone",
+                "embedding": "text-embedding-ada-002",
                 "index_name": "formio-docs-and-website",
                 "files": [
                     "formio-customer-issue.pdf",
@@ -36,6 +38,7 @@ class RequestMultiLoader(BaseModel):
 class RequestDataLoader(BaseModel):
     index_name: str = Field(...)
     provider: str = ("pinecone", "redis")
+    embedding: str = ("text-embedding-ada-002", "llama2:7b", "llama2")
     loaders: List[
         Union[TypeUrlLoader, YoutubeLoader, BlockchainLoader, CopyPasteLoader]
     ] or None = Field(...)
@@ -44,6 +47,7 @@ class RequestDataLoader(BaseModel):
         json_schema_extra = {
             "example": {
                 "provider": "pinecone",
+                "embedding": "text-embedding-ada-002",
                 "index_name": "formio-docs-and-website",
                 "loaders": [
                     {"type": "gitbook", "urls": ["https://help.form.io"]},

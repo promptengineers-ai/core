@@ -8,17 +8,23 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from promptengineers.retrieval.utils import split_docs
 
 class RedisService:
-	def __init__(self, redis_url: str, index_name: str = None, openai_api_key: str = None):
+	def __init__(
+			self, 
+			redis_url: str, 
+			index_name: str = None, 
+			embeddings = None, 
+			openai_api_key: str = None
+	):
 		self.redis_url = redis_url
 		self.index_name = index_name
-		self.embedding = OpenAIEmbeddings(openai_api_key=openai_api_key)
+		self.embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key) if openai_api_key else embeddings
 		self.client = Redis(
 			redis_url=self.redis_url,
 			index_name=self.index_name,
-			embedding=self.embedding
+			embedding=self.embeddings
 		)
 
-	def from_documents(
+	def add_docs(
 		self,
 		loaders,
 		chunk_size: int = 1000,
@@ -31,24 +37,19 @@ class RedisService:
 		## TODO: Find out why this is needed, wouldn't work before without.
 		os.environ['REDIS_URL'] = self.redis_url
 
-		return self.client.from_documents(
-			split_docs(docs, chunk_size, chunk_overlap),
-			self.embedding,
-			index_name=self.index_name
-		)
+		return self.client.add_documents(split_docs(docs, chunk_size, chunk_overlap))
 
 	#############################################################
 	## Retrieve Vectors from Existing Index
 	#############################################################
 	def from_existing(
 		self,
-		schema: dict = None,
+		schema: dict = {"page_content": "TEXT", "metadata": "HASH"},
 	):
-		## TODO: Find out why this is needed, wouldn't work before without.
-		os.environ['REDIS_URL'] = self.redis_url
-		return Redis.from_existing_index(
+		return self.client.from_existing_index(
 			index_name=self.index_name,
-			embedding=self.embedding,
+			embedding=self.embeddings,
+			redis_url=self.redis_url,
 			schema=schema
 		)
 
