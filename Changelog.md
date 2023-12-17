@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## 1.1.2
 ### Added
   - feature/55-update-ollama-rag-chat (2023-12-17) 
+
+## 1.1.1
 ### Fixed
   - feature/rag-chat-fixed-to-not-be-agent (2023-12-13) 
 
