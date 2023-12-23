@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 import os
 import time
 import pickle
@@ -7,10 +7,8 @@ from queue import Queue
 from concurrent.futures import ThreadPoolExecutor
 
 from fastapi import HTTPException, UploadFile, File, Request
-from langchain.embeddings.openai import OpenAIEmbeddings
 
 from promptengineers.core.config.loaders import FileLoaderType
-from promptengineers.core.config.test import TEST_USER_ID
 from promptengineers.retrieval.factories.embedding import EmbeddingFactory
 from promptengineers.retrieval.factories.loader import LoaderFactory
 from promptengineers.core.interfaces.repos import IUserRepo
@@ -21,7 +19,6 @@ from promptengineers.storage.services import StorageService
 from promptengineers.core.utils import logger
 from promptengineers.core.validations import Validator
 from promptengineers.retrieval.utils import create_faiss_vectorstore
-from promptengineers.core.config.llm import OllamaModels
 
 validator = Validator()
 user_repo = UserRepo()
@@ -199,7 +196,7 @@ class VectorSearchController:
 				loaders = accumulate_loaders(body)
 				pinecone_service.from_documents(
 					loaders,
-					embeddings,
+					embeddings(),
 					namespace=dict(body).get('index_name')
 				)
 
@@ -231,7 +228,7 @@ class VectorSearchController:
 					faiss_vectorstore(loaders, tmpdirname, self.user_id, req_body.get('index_name'), tokens)
 
 				if req_body.get('provider') == 'pinecone':
-					embeddings = OpenAIEmbeddings(openai_api_key=tokens.get('OPENAI_API_KEY'))
+					embeddings = EmbeddingFactory('text-embedding-ada-002', tokens.get('OPENAI_API_KEY'))
 					pinecone_service = PineconeService(
 						api_key=tokens.get('PINECONE_KEY'),
 						env=tokens.get('PINECONE_ENV'),
@@ -278,7 +275,7 @@ class VectorSearchController:
 			validator.validate_api_keys(tokens, keys)
 
 			## Get Embeddings and Pinecone Service
-			embeddings = OpenAIEmbeddings(openai_api_key=tokens.get('OPENAI_API_KEY'))
+			embeddings = EmbeddingFactory('text-embedding-ada-002', tokens.get('OPENAI_API_KEY'))
 			pinecone_service = PineconeService(
 				api_key=tokens.get('PINECONE_KEY'),
 				env=tokens.get('PINECONE_ENV'),
@@ -297,7 +294,7 @@ class VectorSearchController:
 					while not file_queue.empty():
 						file = file_queue.get()
 						try:
-							process_file(index, tmpdirname, file, embeddings, pinecone_service)
+							process_file(index, tmpdirname, file, embeddings(), pinecone_service)
 						finally:
 							file_queue.task_done()
 
@@ -309,7 +306,7 @@ class VectorSearchController:
 				file_queue.join()  # Wait for all files to be processed
 			else:
 				for file in files:
-					process_file(index, tmpdirname, file, embeddings, pinecone_service)
+					process_file(index, tmpdirname, file, embeddings(), pinecone_service)
 
 
 	##############################################################

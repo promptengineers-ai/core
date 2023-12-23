@@ -8,15 +8,16 @@ from langchain.embeddings import OllamaEmbeddings
 # validator = Validator()
 
 class EmbeddingFactory:
-	def __init__(self, llm: str, token: str = None):
+	def __init__(self, llm: str, token: str = None, base_url: str = None):
 		self.llm = llm
 		self.token = token
+		self.base_url = base_url
 
 	def __call__(self) -> Any:
 		if self.llm in ACCEPTED_OPENAI_MODELS:
 			return OpenAIEmbeddings(openai_api_key=self.token)
 		elif self.llm in ACCEPTED_OLLAMA_MODELS:
-			return OllamaEmbeddings(base_url='http://192.168.1.147:11434')
+			return OllamaEmbeddings(base_url=self.base_url or 'http://127.0.0.1:11434')
 		else:
-			raise ValueError(f"Invalid language model {self.llm}")
+			raise ValueError(f"Invalid embedding model {self.llm}")
 					 
