@@ -19,6 +19,7 @@ from promptengineers.storage.services import StorageService
 from promptengineers.core.utils import logger
 from promptengineers.core.validations import Validator
 from promptengineers.retrieval.utils import create_faiss_vectorstore
+from promptengineers.core.config.llm import OllamaModels
 
 validator = Validator()
 user_repo = UserRepo()
@@ -228,7 +229,7 @@ class VectorSearchController:
 					faiss_vectorstore(loaders, tmpdirname, self.user_id, req_body.get('index_name'), tokens)
 
 				if req_body.get('provider') == 'pinecone':
-					embeddings = EmbeddingFactory('text-embedding-ada-002', tokens.get('OPENAI_API_KEY'))
+					embeddings = EmbeddingFactory(req_body.get('embedding'), tokens.get('OPENAI_API_KEY'))
 					pinecone_service = PineconeService(
 						api_key=tokens.get('PINECONE_KEY'),
 						env=tokens.get('PINECONE_ENV'),
