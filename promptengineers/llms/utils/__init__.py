@@ -1,5 +1,12 @@
 """Utilites for Chains"""
+from langchain.agents import load_tools
+from langchain.tools import AIPluginTool
 from langchain_core.documents.base import Document
+from langchain.agents.agent_toolkits import create_retriever_tool
+
+from promptengineers.retrieval.strategies import VectorstoreContext
+from promptengineers.core.config.tools import AVAILABLE_TOOLS
+from promptengineers.tools.utils import filter_tools
 
 def get_chat_history(inputs: tuple) -> str:
     """Formats the chat history into a readable format for the chatbot"""
@@ -27,3 +34,34 @@ def retrieve_chat_messages(messages):
     return [
         (msg["content"]) for msg in messages if msg["role"] in ["user", "assistant"]
     ]
+
+def gather_tools(
+    tools: list[str] = None,
+    available_tools: dict[str, any] = None,
+    vectorstore: VectorstoreContext = None,
+    plugins: list[str] = None,
+):
+    """Gather tools from the tools list"""
+    filtered_tools = filter_tools(tools or [], available_tools or AVAILABLE_TOOLS)
+
+    ## Add docs tool
+    if vectorstore:
+        docs_tool = create_retriever_tool(
+            vectorstore.as_retriever(),
+            "search_docs",
+            """
+            Searches and returns relevant documents. It is a requirement to use this for every query.
+            Rewrite the user to be a detailed question.
+            """,
+        )
+        filtered_tools.append(docs_tool)
+
+    ## Add plugins
+    if plugins and len(plugins) > 0:
+        loaded_tools = load_tools(["requests_all"])
+        for tool in plugins:
+            tool = AIPluginTool.from_plugin_url(tool)
+            loaded_tools += [tool]
+        filtered_tools += loaded_tools
+
+    return filtered_tools

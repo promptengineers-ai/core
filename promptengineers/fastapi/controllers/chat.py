@@ -153,14 +153,12 @@ class ChatController:
 	##############################################################################
 	## Langchain Agent Chat
 	##############################################################################
-	def langchain_http_agent_chat(
+	async def langchain_http_agent_chat(
 		self,
 		messages,
 		model: str,
+		tools,
 		temperature: float or int = 0.0,
-		tools: list[str] = None,
-		plugins: list[str] = None,
-		vectorstore: VectorstoreContext = None,
 	) -> (str, Any):
 		"""Send a message to the chatbot and yield the response."""
 		filtered_messages = retrieve_chat_messages(messages)
@@ -187,52 +185,9 @@ class ChatController:
 			# Retrieve the conversation
 			chain = ChainService(model).agent_with_tools(system_message=system_message,
 														chat_history=chat_history,
-														available_tools=self.available_tools,
-														tools=tools,
-														plugins=plugins,
-														vectorstore=vectorstore)
+														tools=tools)
 			# Begin a task that runs in the background.
-			response = chain(filtered_messages[-1])
-		return response, cb
-
-	##############################################################################
-	## Langchain Agent Plugins Chat
-	##############################################################################
-	def langchain_http_agent_plugins_chat(
-		self,
-		messages,
-		model:str,
-		temperature: float or int = 0.0,
-		plugins: list[str] = None,
-	) -> (str, Any):
-		"""Send a message to the chatbot and yield the response."""
-		filtered_messages = retrieve_chat_messages(messages)
-		# Retrieve the chat history
-		chat_history = list(zip(filtered_messages[::2], filtered_messages[1::2]))
-		# Retrieve the system message
-		system_message = retrieve_system_message(messages)
-		# Get Tokens
-		api_key = self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
-		# Create the model
-		if model in ACCEPTED_OPENAI_MODELS:
-			model_service = ModelContext(strategy=OpenAIStrategy(api_key=api_key))
-		elif model in ACCEPTED_OLLAMA_MODELS:
-			model_service = ModelContext(strategy=OllamaStrategy())
-		else:
-			raise NotImplementedError(f"Model {model} not implemented")
-
-		model = model_service.chat(
-			model_name=model,
-			temperature=temperature,
-			streaming=False
-		)
-		with get_openai_callback() as cb:
-			# Retrieve the conversation
-			chain = ChainService(model).agent_with_plugins(plugins,
-															system_message,
-															chat_history)
-			# Begin a task that runs in the background.
-			response = chain.run(filtered_messages[-1])
+			response = await chain.ainvoke(filtered_messages[-1])
 		return response, cb
 
 	##############################################################################
@@ -347,10 +302,8 @@ class ChatController:
 		self,
 		messages,
 		model: str,
+		tools,
 		temperature: float or int = 0.0,
-		tools: list[str] = None,
-		plugins: list[str] = None,
-		vectorstore: VectorstoreContext = None,
 	):
 		"""Send a message to the chatbot and yield the response."""
 		filtered_messages = retrieve_chat_messages(messages)
@@ -379,10 +332,7 @@ class ChatController:
 		# tools = load_tools(tools, llm=model)
 		agent_executor = ChainService(model).agent_with_tools(system_message=system_message,
 															chat_history=chat_history,
-															available_tools=self.available_tools,
 															tools=tools,
-															plugins=plugins,
-															vectorstore=vectorstore,
 															callbacks=[callback])
 		runnable = agent_executor.astream_log(query)
 		async for chunk in runnable:
@@ -408,53 +358,6 @@ class ChatController:
 
 							yield token_stream(f"Invoking: `{tool}` with `{tool_args}`", 'log')
 		yield token_stream()
-
-	#######################################################
-	## Langchain Agent Plugins Stream Chat
-	#######################################################
-	async def langchain_stream_agent_plugins_chat(
-		self,
-		messages,
-		model:str,
-		temperature: float or int = 0.9,
-		plugins: list[str] = None
-	):
-		"""Send a message to the chatbot and yield the response."""
-		filtered_messages = retrieve_chat_messages(messages)
-		# Retrieve the chat history
-		chat_history = list(zip(filtered_messages[::2], filtered_messages[1::2]))
-		# Retrieve the system message
-		system_message = retrieve_system_message(messages)
-		# Get Tokens
-		api_key = self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
-		# Create the model
-		if model in ACCEPTED_OPENAI_MODELS:
-			model_service = ModelContext(strategy=OpenAIStrategy(api_key=api_key))
-		else:
-			raise NotImplementedError(f"Model {model} not implemented")
-
-		callback = AgentStreamCallbackHandler()
-		model = model_service.chat(
-			model_name=model,
-			temperature=temperature,
-			streaming=True,
-			callbacks=[callback]
-		)
-		query = {'input': filtered_messages[-1], 'chat_history': chat_history}
-		# tools = load_tools(tools, llm=model)
-		agent_executor = ChainService(model).agent_with_plugins(plugins,
-															system_message,
-															chat_history,
-															callbacks=[callback])
-		task = asyncio.create_task(wrap_done(
-			agent_executor.acall(query),
-			callback.done),
-		)
-		# Yield the tokens as they come in.
-		async for token in callback.aiter():
-			yield token_stream(token)
-		yield token_stream()
-		await task
 
 	#######################################################
 	## Vectorstore

@@ -255,6 +255,7 @@ class VectorSearchController:
 		self,
 		provider: str,
 		index: str,
+		embedding: str,
 		files: List[UploadFile] = File(...),
 		threaded: bool = True,
 	):
@@ -276,7 +277,7 @@ class VectorSearchController:
 			validator.validate_api_keys(tokens, keys)
 
 			## Get Embeddings and Pinecone Service
-			embeddings = EmbeddingFactory('text-embedding-ada-002', tokens.get('OPENAI_API_KEY'))
+			embeddings = EmbeddingFactory(embedding, tokens.get('OPENAI_API_KEY'))
 			pinecone_service = PineconeService(
 				api_key=tokens.get('PINECONE_KEY'),
 				env=tokens.get('PINECONE_ENV'),

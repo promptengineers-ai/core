@@ -13,6 +13,7 @@ from promptengineers.models.response import (ResponseChat, ResponseAgentChat, Re
 									RESPONSE_STREAM_CHAT)
 from promptengineers.retrieval.strategies import VectorstoreContext
 from promptengineers.core.utils import logger
+from promptengineers.llms.utils import gather_tools
 from promptengineers.tools.utils import format_agent_actions
 
 router = APIRouter()
@@ -107,7 +108,6 @@ async def chat(
 	},
 )
 async def agent(
-	request: Request,
 	body: ReqBodyAgentChat,
 	chat_controller: ChatController = Depends(get_controller),
 ):
@@ -115,11 +115,9 @@ async def agent(
 	try:
 		vectorstore = None
 		if body.retrieval.provider and body.retrieval.index:
-			# Retrieve User Tokens
-			user_id = getattr(request.state, "user_id", None)
 
 			# Retrieve User Tokens
-			token = chat_controller.user_repo.find_token(user_id, ['OPENAI_API_KEY']).get('OPENAI_API_KEY')
+			token = chat_controller.user_repo.find_token(chat_controller.user_id, 'OPENAI_API_KEY')
 
 			# Generate Embeddings
 			embeddings = EmbeddingFactory(body.model, token)
@@ -129,21 +127,32 @@ async def agent(
 				provider=body.retrieval.provider,
 				index=body.retrieval.index,
 				embeddings=embeddings(),
-				user_id=user_id,
+				user_id=chat_controller.user_id,
+				user_repo=chat_controller.user_repo,
 			)
 			vectostore_service = VectorstoreContext(vectorstore_strategy)
 			vectorstore = vectostore_service.load()
+		
+		tools = gather_tools(
+			tools=body.tools,
+			available_tools=chat_controller.available_tools,
+			vectorstore=vectorstore,
+			plugins=body.plugins
+		)
+		if not tools:
+			raise HTTPException(
+				status_code=400,
+				detail="No tools selected"
+			)
 
 		# You can use the stream variable in your function as needed
 		if not body.stream:
 			# Format Response
-			result, cb = chat_controller.langchain_http_agent_chat(
+			result, cb = await chat_controller.langchain_http_agent_chat(
 				messages=body.messages,
 				model=body.model,
 				temperature=body.temperature,
-				tools=body.tools,
-				plugins=body.plugins,
-				vectorstore=vectorstore,
+				tools=tools
 			)
 			data = ujson.dumps({
 				'message': result['output'],
@@ -168,9 +177,7 @@ async def agent(
 				messages=body.messages,
 				model=body.model,
 				temperature=body.temperature,
-				tools=body.tools,
-				plugins=body.plugins,
-				vectorstore=vectorstore,
+				tools=tools
 			),
 			headers={
 				"Cache-Control": "no-cache",
