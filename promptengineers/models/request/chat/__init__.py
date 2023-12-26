@@ -62,7 +62,7 @@ class ReqBodyAgentChat(ReqBodyChat):  # pylint: disable=too-few-public-methods
                 "plugins": ["https://api.speak.com/.well-known/ai-plugin.json"],
                 "retrieval": {
                     "provider": "pinecone",
-                    "index": "Formio",
+                    "index_name": "Formio",
                 }
             }
         }

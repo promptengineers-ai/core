@@ -13,7 +13,7 @@ CHAT_SETTINGS = {
     "plugins": ["https://domain-to-plugin-api.com/.well-known/ai-plugin.json"],
     "retrieval": {
 		"provider": "pinecone",
-		"index": "promptengineers-core-repository",
+		"index_name": "promptengineers-core-repository",
     },
 	"tags": ["core", "repository", "promptengineers"]
 }
@@ -29,7 +29,7 @@ CHAT_SETTING_DOCUMENT = {
     "plugins": ["https://domain-to-plugin-api.com/.well-known/ai-plugin.json"],
     "retrieval": {
 		"provider": "pinecone",
-		"index": "promptengineers-core-repository",
+		"index_name": "promptengineers-core-repository",
     },
 	"tags": ["core", "repository", "promptengineers"],
 	"created_at": 1698523723,
