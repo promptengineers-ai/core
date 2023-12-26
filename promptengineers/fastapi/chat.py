@@ -114,7 +114,7 @@ async def agent(
 	"""Chat endpoint."""
 	try:
 		vectorstore = None
-		if body.retrieval.provider and body.retrieval.index:
+		if body.retrieval.provider and body.retrieval.index_name:
 
 			# Retrieve User Tokens
 			token = chat_controller.user_repo.find_token(chat_controller.user_id, 'OPENAI_API_KEY')
@@ -125,7 +125,7 @@ async def agent(
 			# Retreve Vectorstore
 			vectorstore_strategy = RetreivalFactory(
 				provider=body.retrieval.provider,
-				index=body.retrieval.index,
+				index_name=body.retrieval.index_name,
 				embeddings=embeddings(),
 				user_id=chat_controller.user_id,
 				user_repo=chat_controller.user_repo,
@@ -229,7 +229,7 @@ async def vector_search(
 		# Retreve Vectorstore
 		vectorstore_strategy = RetreivalFactory(
 			provider=body.provider,
-			index=body.vectorstore,
+			index_name=body.vectorstore,
 			embeddings=embeddings(),
 			user_id=user_id,
 		)

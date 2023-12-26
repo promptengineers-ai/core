@@ -254,7 +254,7 @@ class VectorSearchController:
 	async def create_vectorstore_from_files(
 		self,
 		provider: str,
-		index: str,
+		index_name: str,
 		embedding: str,
 		files: List[UploadFile] = File(...),
 		threaded: bool = True,
@@ -296,7 +296,7 @@ class VectorSearchController:
 					while not file_queue.empty():
 						file = file_queue.get()
 						try:
-							process_file(index, tmpdirname, file, embeddings(), pinecone_service)
+							process_file(index_name, tmpdirname, file, embeddings(), pinecone_service)
 						finally:
 							file_queue.task_done()
 
@@ -308,7 +308,7 @@ class VectorSearchController:
 				file_queue.join()  # Wait for all files to be processed
 			else:
 				for file in files:
-					process_file(index, tmpdirname, file, embeddings(), pinecone_service)
+					process_file(index_name, tmpdirname, file, embeddings(), pinecone_service)
 
 
 	##############################################################
