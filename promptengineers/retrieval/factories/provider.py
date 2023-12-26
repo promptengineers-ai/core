@@ -8,13 +8,13 @@ class RetreivalFactory:
 	def __init__(
 			self,
 			provider: ('redis', 'pinecone'), 
-			index: str,
+			index_name: str,
 			embeddings,
 			user_id: str,
 			user_repo: IUserRepo = UserRepo()
 	):
 		self.provider = provider
-		self.index = index
+		self.index_name = index_name
 		self.embeddings = embeddings
 		self.user_id = user_id
 		self.user_repo = user_repo
@@ -30,7 +30,7 @@ class RetreivalFactory:
 				api_key=tokens.get(required_keys[0]),
 				env=tokens.get(required_keys[1]),
 				index_name=tokens.get(required_keys[2]),
-				namespace=self.index,
+				namespace=self.index_name,
 			)
 		elif self.provider in 'redis':
 			required_keys = ['REDIS_URL']
@@ -38,7 +38,7 @@ class RetreivalFactory:
 			self.validator.validate_api_keys(tokens, required_keys)
 			vectorstore_strategy = RedisStrategy(
 				redis_url=tokens.get(required_keys[0]),
-				index_name=self.index,
+				index_name=self.index_name,
 				embeddings=self.embeddings,
 			)
 		else:
