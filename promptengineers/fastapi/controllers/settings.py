@@ -37,17 +37,20 @@ class SettingsController(IController):
 	##############################################################
 	### Create
 	##############################################################
-	async def create(self, body: ReqBodySettings):
-		body = await self.request.json()
-		keys = ['system', 'temperature', 'retrieval', 
+	async def create(
+			self, 
+			body: ReqBodySettings, 
+			keys = ['system', 'temperature', 'retrieval', 
 		  		'functions', 'tools', 'plugins', 'title', 'model', 'stream']
+		):
+		body = await self.request.json()
 		body = dict((k, body[k]) for k in keys if k in body)
 		body['user_id'] = ObjectId(self.user_id)
 		result = await self.settings_service.create(dict(body))
 		return result
 
 	##############################################################
-	### Update
+	### Show
 	##############################################################
 	async def show(self, id: str):
 		result = await self.settings_service.read_one(
@@ -59,10 +62,14 @@ class SettingsController(IController):
 	##############################################################
 	### Update
 	##############################################################
-	async def update(self, id: str, body: ReqBodySettings):
-		body = await self.request.json()
+	async def update(
+		self, 
+		id: str, 
+		body: ReqBodySettings,
 		keys = ['system', 'temperature', 'retrieval', 
 		  		'functions', 'tools', 'plugins', 'title', 'model', 'stream']
+	):
+		body = await self.request.json()
 		body = dict((k, body[k]) for k in keys if k in body)
 		result = await self.settings_service.update_one(
 			{'_id': ObjectId(id), 'user_id': ObjectId(self.user_id)},

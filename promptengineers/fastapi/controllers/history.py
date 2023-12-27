@@ -36,9 +36,8 @@ class HistoryController(IController):
 	##############################################################
 	### Create Chat History
 	##############################################################
-	async def create(self, body):
+	async def create(self, body, keys = ['setting', 'messages']):
 		body = await self.request.json()
-		keys = ['setting', 'messages']
 		body = dict((k, body[k]) for k in keys if k in body)
 		body['user_id'] = ObjectId(self.user_id)
 		if body.get('setting', False):
@@ -47,7 +46,7 @@ class HistoryController(IController):
 		return result
 
 	##############################################################
-	### Update Chat History
+	### Show Chat History
 	##############################################################
 	async def show(self, id: str):
 		result = await self.history_service.read_one(
@@ -59,9 +58,8 @@ class HistoryController(IController):
 	##############################################################
 	### Update Chat History
 	##############################################################
-	async def update(self, id: str, body: any):
+	async def update(self, id: str, body: any, keys = ['setting', 'messages']):
 		body = await self.request.json()
-		keys = ['setting', 'messages']
 		body = dict((k, body[k]) for k in keys if k in body)
 		if body.get('setting', False):
 			body['setting'] = ObjectId(body['setting'])
