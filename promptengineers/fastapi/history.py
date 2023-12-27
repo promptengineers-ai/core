@@ -66,7 +66,7 @@ async def create_chat_history(
 ):
 	"""Create history"""
 	try:
-		result = await controller.create()
+		result = await controller.create(body)
 		# Format Response
 		data = json.dumps({
 			**result
