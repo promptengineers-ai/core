@@ -1,6 +1,5 @@
 from bson.objectid import ObjectId
 
-# from fastapi import Request
 from promptengineers.core.interfaces.controllers import IController
 from promptengineers.core.interfaces.repos import IUserRepo
 from promptengineers.repos.user import UserRepo
@@ -10,7 +9,6 @@ from promptengineers.models.request import ReqBodySettings
 class SettingsController(IController):
 	def __init__(
 		self, 
-		# request: Request = None, 
 		request = None,
 		user_repo: IUserRepo = None, 
 		db_name: str = None,
@@ -41,6 +39,9 @@ class SettingsController(IController):
 	##############################################################
 	async def create(self, body: ReqBodySettings):
 		body = await self.request.json()
+		keys = ['system', 'temperature', 'retrieval', 
+		  		'functions', 'tools', 'plugins', 'title', 'model', 'stream']
+		body = dict((k, body[k]) for k in keys if k in body)
 		body['user_id'] = ObjectId(self.user_id)
 		result = await self.settings_service.create(dict(body))
 		return result
@@ -60,6 +61,9 @@ class SettingsController(IController):
 	##############################################################
 	async def update(self, id: str, body: ReqBodySettings):
 		body = await self.request.json()
+		keys = ['system', 'temperature', 'retrieval', 
+		  		'functions', 'tools', 'plugins', 'title', 'model', 'stream']
+		body = dict((k, body[k]) for k in keys if k in body)
 		result = await self.settings_service.update_one(
 			{'_id': ObjectId(id), 'user_id': ObjectId(self.user_id)},
 			dict(body)
