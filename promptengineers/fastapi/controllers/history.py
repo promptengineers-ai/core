@@ -1,5 +1,4 @@
 from bson.objectid import ObjectId
-# from fastapi import Request
 
 from promptengineers.core.interfaces.controllers import IController
 from promptengineers.core.interfaces.repos import IUserRepo
@@ -9,7 +8,6 @@ from promptengineers.mongo.service import MongoService
 class HistoryController(IController):
 	def __init__(
 		self,
-		# request: Request = None,
 		request = None,
 		user_repo: IUserRepo = None,
 		db_name: str = None,
@@ -38,8 +36,9 @@ class HistoryController(IController):
 	##############################################################
 	### Create Chat History
 	##############################################################
-	async def create(self):
+	async def create(self, body, keys: list[str] = ['setting', 'messages']):
 		body = await self.request.json()
+		body = dict((k, body[k]) for k in keys if k in body)
 		body['user_id'] = ObjectId(self.user_id)
 		if body.get('setting', False):
 			body['setting'] = ObjectId(body['setting'])
@@ -47,7 +46,7 @@ class HistoryController(IController):
 		return result
 
 	##############################################################
-	### Update Chat History
+	### Show Chat History
 	##############################################################
 	async def show(self, id: str):
 		result = await self.history_service.read_one(
@@ -59,8 +58,9 @@ class HistoryController(IController):
 	##############################################################
 	### Update Chat History
 	##############################################################
-	async def update(self, id: str, body: any):
+	async def update(self, id: str, body: any, keys: list[str] = ['setting', 'messages']):
 		body = await self.request.json()
+		body = dict((k, body[k]) for k in keys if k in body)
 		if body.get('setting', False):
 			body['setting'] = ObjectId(body['setting'])
 		result = await self.history_service.update_one(
