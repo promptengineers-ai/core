@@ -22,7 +22,7 @@ class RetreivalFactory:
 
 	def __call__(self) -> PineconeStrategy | RedisStrategy:
 		if self.provider in 'pinecone':
-			required_keys = ['PINECONE_KEY', 'PINECONE_ENV', 'PINECONE_INDEX']
+			required_keys = ['PINECONE_API_KEY', 'PINECONE_ENV', 'PINECONE_INDEX']
 			tokens = self.user_repo.find_token(self.user_id, required_keys)
 			self.validator.validate_api_keys(tokens, required_keys)
 			vectorstore_strategy = PineconeStrategy(

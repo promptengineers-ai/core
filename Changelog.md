@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.1.9
+### Added
+  - Had to update the PINECONE_KEY to PINECONE_API_KEY (2023-12-28)
+
 ## 1.1.8
 ### Added
   - feature/70-keys-list-to-set (2023-12-28)

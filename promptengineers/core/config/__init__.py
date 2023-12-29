@@ -30,7 +30,7 @@ ACCESS_SECRET_KEY = os.getenv("ACCESS_SECRET_KEY", '')
 MINIO_SERVER = os.getenv("MINIO_SERVER", '')
 
 # Pinecone Credentials
-PINECONE_KEY = os.getenv("PINECONE_KEY", '')
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", '')
 PINECONE_ENV = os.getenv("PINECONE_ENV", '')
 PINECONE_INDEX = os.getenv("PINECONE_INDEX", '')
 

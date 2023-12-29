@@ -182,7 +182,7 @@ class VectorSearchController:
 		"""Create a vectorstore from multiple loaders."""
 		req_body = dict(body)
 		passed_file_names = req_body.get('files', [])
-		pinecone_keys = ['PINECONE_KEY', 'PINECONE_ENV', 'PINECONE_INDEX', 'OPENAI_API_KEY']
+		pinecone_keys = ['PINECONE_API_KEY', 'PINECONE_ENV', 'PINECONE_INDEX', 'OPENAI_API_KEY']
 		redis_keys = ['REDIS_URL', 'OPENAI_API_KEY']
 		if not passed_file_names:
 			if req_body.get('provider') == 'pinecone':
@@ -190,7 +190,7 @@ class VectorSearchController:
 				embeddings = EmbeddingFactory(req_body.get('embedding'), tokens.get('OPENAI_API_KEY'))
 				validator.validate_api_keys(tokens, pinecone_keys)
 				pinecone_service = PineconeService(
-					api_key=tokens.get('PINECONE_KEY'),
+					api_key=tokens.get('PINECONE_API_KEY'),
 					env=tokens.get('PINECONE_ENV'),
 					index_name=tokens.get('PINECONE_INDEX'),
 				)
@@ -231,7 +231,7 @@ class VectorSearchController:
 				if req_body.get('provider') == 'pinecone':
 					embeddings = EmbeddingFactory(req_body.get('embedding'), tokens.get('OPENAI_API_KEY'))
 					pinecone_service = PineconeService(
-						api_key=tokens.get('PINECONE_KEY'),
+						api_key=tokens.get('PINECONE_API_KEY'),
 						env=tokens.get('PINECONE_ENV'),
 						index_name=tokens.get('PINECONE_INDEX'),
 					)
@@ -271,7 +271,7 @@ class VectorSearchController:
 
 		## Get Tokens
 		if provider == 'pinecone':
-			keys = ['PINECONE_KEY', 'PINECONE_ENV', 'PINECONE_INDEX', 'OPENAI_API_KEY']
+			keys = ['PINECONE_API_KEY', 'PINECONE_ENV', 'PINECONE_INDEX', 'OPENAI_API_KEY']
 			tokens = self.user_repo.find_token(self.user_id, keys)
 			## Check for token, else throw error
 			validator.validate_api_keys(tokens, keys)
@@ -279,7 +279,7 @@ class VectorSearchController:
 			## Get Embeddings and Pinecone Service
 			embeddings = EmbeddingFactory(embedding, tokens.get('OPENAI_API_KEY'))
 			pinecone_service = PineconeService(
-				api_key=tokens.get('PINECONE_KEY'),
+				api_key=tokens.get('PINECONE_API_KEY'),
 				env=tokens.get('PINECONE_ENV'),
 				index_name=tokens.get('PINECONE_INDEX'),
 			)
@@ -316,13 +316,13 @@ class VectorSearchController:
 	##############################################################
 	def retrieve_pinecone_vectorstores(self):
 		## Get Tokens
-		keys = ['PINECONE_KEY', 'PINECONE_ENV', 'PINECONE_INDEX']
+		keys = ['PINECONE_API_KEY', 'PINECONE_ENV', 'PINECONE_INDEX']
 		tokens = self.user_repo.find_token(self.user_id, keys)
 		## Check for token, else throw error
 		validator.validate_api_keys(tokens, keys)
 		## Get Vectorstores
 		pinecone_service = PineconeService(
-			api_key=tokens.get('PINECONE_KEY'),
+			api_key=tokens.get('PINECONE_API_KEY'),
 			env=tokens.get('PINECONE_ENV'),
 			index_name=tokens.get('PINECONE_INDEX'),
 		)
@@ -338,13 +338,13 @@ class VectorSearchController:
 	##############################################################
 	def delete_pinecone_vectorstore(self, prefix: str):
 		## Get Tokens
-		keys = ['PINECONE_KEY', 'PINECONE_ENV', 'PINECONE_INDEX']
+		keys = ['PINECONE_API_KEY', 'PINECONE_ENV', 'PINECONE_INDEX']
 		tokens = self.user_repo.find_token(self.user_id, keys)
 		## Check for token, else throw error
 		validator.validate_api_keys(tokens, keys)
 		## Delete Vectorstore
 		pinecone_service = PineconeService(
-			api_key=tokens.get('PINECONE_KEY'),
+			api_key=tokens.get('PINECONE_API_KEY'),
 			env=tokens.get('PINECONE_ENV'),
 			index_name=tokens.get('PINECONE_INDEX'),
 		)
