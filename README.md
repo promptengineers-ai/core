@@ -62,7 +62,7 @@ MESSAGES = [
 user_repo = UserRepo()
 
 # Define a list of required API keys
-required_keys = ['OPENAI_API_KEY', 'PINECONE_KEY', 'PINECONE_ENV', 'PINECONE_INDEX']
+required_keys = ['OPENAI_API_KEY', 'PINECONE_API_KEY', 'PINECONE_ENV', 'PINECONE_INDEX']
 
 # Retrieve API tokens using the UserRepo class
 tokens = user_repo.find_token(TEST_USER_ID, required_keys)
