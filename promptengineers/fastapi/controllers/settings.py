@@ -40,8 +40,8 @@ class SettingsController(IController):
 	async def create(
 			self, 
 			body: ReqBodySettings, 
-			keys: list[str] = ['system', 'temperature', 'retrieval', 
-		  		'functions', 'tools', 'plugins', 'title', 'model', 'stream']
+			keys: set[str] = {'system', 'temperature', 'retrieval', 'tags',
+		  						'functions', 'tools', 'plugins', 'title', 'model', 'stream'}
 		):
 		body = await self.request.json()
 		body = dict((k, body[k]) for k in keys if k in body)
@@ -66,8 +66,8 @@ class SettingsController(IController):
 		self, 
 		id: str, 
 		body: ReqBodySettings,
-		keys: list[str] = ['system', 'temperature', 'retrieval', 
-		  		'functions', 'tools', 'plugins', 'title', 'model', 'stream']
+		keys: set[str] = {'system', 'temperature', 'retrieval', 'tags',
+		  						'functions', 'tools', 'plugins', 'title', 'model', 'stream'}
 	):
 		body = await self.request.json()
 		body = dict((k, body[k]) for k in keys if k in body)
