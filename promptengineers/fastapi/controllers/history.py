@@ -8,13 +8,14 @@ from promptengineers.mongo.service import MongoService
 class HistoryController(IController):
 	def __init__(
 		self,
+		user_id: str = None,
 		request = None,
 		user_repo: IUserRepo = None,
 		db_name: str = None,
 		col_name: str = None
 	):
 		self.request = request
-		self.user_id = getattr(request.state, "user_id", None)
+		self.user_id = user_id or getattr(request.state, "user_id", None)
 		self.user_repo = user_repo or UserRepo()
 		self.history_service = MongoService(
 			host=self.user_repo.find_token(self.user_id, 'MONGO_CONNECTION'),
@@ -36,8 +37,12 @@ class HistoryController(IController):
 	##############################################################
 	### Create Chat History
 	##############################################################
-	async def create(self, body, keys: set[str] = {'setting', 'messages', 'tags', 'title'}):
-		body = await self.request.json()
+	async def create(
+			self, 
+			body, 
+			keys: set[str] = {'setting', 'messages', 'tags', 'title'}
+		):
+		body = await self.request.json() if self.request else body
 		body = dict((k, body[k]) for k in keys if k in body)
 		body['user_id'] = ObjectId(self.user_id)
 		if body.get('setting', False):
@@ -48,18 +53,22 @@ class HistoryController(IController):
 	##############################################################
 	### Show Chat History
 	##############################################################
-	async def show(self, id: str):
+	async def show(self, id: str = None, query = None):
 		result = await self.history_service.read_one(
-			{'_id': ObjectId(id), 'user_id': ObjectId(self.user_id)}
+			query or {'_id': ObjectId(id), 'user_id': ObjectId(self.user_id)}
 		)
 		return result
-
 
 	##############################################################
 	### Update Chat History
 	##############################################################
-	async def update(self, id: str, body: any, keys: set[str] = {'setting', 'messages', 'tags', 'title'}):
-		body = await self.request.json()
+	async def update(
+			self, 
+			id: str, 
+			body: any, 
+			keys: set[str] = {'setting', 'messages', 'tags', 'title'}
+		):
+		body = await self.request.json() if self.request else body
 		body = dict((k, body[k]) for k in keys if k in body)
 		if body.get('setting', False):
 			body['setting'] = ObjectId(body['setting'])
