@@ -25,32 +25,34 @@ def get_controller(request: Request) -> HistoryController:
 	response_model=ResponseHistoryIndex
 )
 async def list_chat_histories(
-	page: int = 1,
-	limit: int = 50,
-	controller: HistoryController = Depends(get_controller),
+    page: int = 1,
+    limit: int = 50,
+    setting: str = None,
+    controller: HistoryController = Depends(get_controller),
 ):
-	"""List histories"""
-	try:
-		result = await controller.index(page, limit)
-		# Format Response
-		data = json.dumps({
-			'histories': result
-		}, cls=JSONEncoder)
-		return Response(
-			content=data,
-			media_type='application/json',
-			status_code=200
-		)
-	except HTTPException as err:
-		logger.error(err.detail)
-		raise
-	except BaseException as err:
-		tb = traceback.format_exc()
-		logger.error("[list_chat_histories]: %s\n%s", err, tb)
-		raise HTTPException(
-			status_code=500,
-			detail=f"An unexpected error occurred. {str(err)}"
-		) from err
+    """List histories"""
+    try:
+        # Forward the setting_id and any additional parameters to the controller's index method
+        result = await controller.index(page, limit, setting=setting)
+        # Format Response
+        data = json.dumps({
+            'histories': result
+        }, cls=JSONEncoder)
+        return Response(
+            content=data,
+            media_type='application/json',
+            status_code=200
+        )
+    except HTTPException as err:
+        logger.error(err.detail)
+        raise
+    except BaseException as err:
+        tb = traceback.format_exc()
+        logger.error("[list_chat_histories]: %s\n%s", err, tb)
+        raise HTTPException(
+            status_code=500,
+            detail=f"An unexpected error occurred. {str(err)}"
+        ) from err
 
 #################################################
 # Create Chat History
