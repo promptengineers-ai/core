@@ -106,7 +106,7 @@ async def show(
 
 		# Format Response
 		data = json.dumps({
-			**result
+			'setting': result
 		}, cls=JSONEncoder)
 		return Response(
 			content=data,

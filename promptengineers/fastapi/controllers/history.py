@@ -26,12 +26,21 @@ class HistoryController(IController):
 	##############################################################
 	### Create Chat History
 	##############################################################
-	async def index(self, page: int = 1, limit: int = 10):
-		result = await self.history_service.list_docs(
-			{'user_id': ObjectId(self.user_id)},
-			limit,
-			page
-		)
+	async def index(self, page: int = 1, limit: int = 10, **kwargs):
+		# Base query with user_id
+		query = {'user_id': ObjectId(self.user_id)}
+
+		# Add additional filters passed as keyword arguments
+		for key, value in kwargs.items():
+			if value is not None:  # Ensure that a value is provided for the filter
+				# Convert to ObjectId if necessary, for example, if key ends with "_id"
+				if key in {'setting'}:
+					query[key] = ObjectId(value)
+				else:
+					query[key] = value
+
+		# Get the result from the history_service
+		result = await self.history_service.list_docs(query, limit, page)
 		return result
 
 	##############################################################
