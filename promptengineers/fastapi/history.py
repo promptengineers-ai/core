@@ -3,18 +3,28 @@ import json
 import traceback
 
 from fastapi import APIRouter, HTTPException, Response, Depends, Request, status
+from promptengineers.core.exceptions import NotFoundException
+from promptengineers.core.utils import logger
 from promptengineers.fastapi.controllers import HistoryController
 from promptengineers.models.request import ReqBodyHistory
 from promptengineers.models.response import (ResponseHistoryShow, ResponseHistoryIndex,
                                             ResponseCreate, ResponseUpdate)
 from promptengineers.mongo.utils import JSONEncoder
-from promptengineers.core.utils import logger
 
 router = APIRouter()
 TAG = "Chat"
 
 def get_controller(request: Request) -> HistoryController:
-	return HistoryController(request=request)
+    try:
+        return HistoryController(request=request, user_repo=request.state.user_repo)
+    except NotFoundException as e:
+        # Handle specific NotFoundException with a custom message or logging
+        logger.warn(f"Failed to initialize HistoryController: {str(e)}")
+        raise HTTPException(status_code=404, detail=f"Initialization failed: {str(e)}") from e
+    except Exception as e:
+        # Catch all other exceptions
+        logger.error(f"Unexpected error initializing HistoryController: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error") from e
 
 #################################################
 # List Chat Histories

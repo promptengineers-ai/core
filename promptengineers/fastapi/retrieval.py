@@ -6,18 +6,29 @@ from fastapi import (APIRouter, Depends, Request, Form, status,
                     Response, UploadFile, File, HTTPException)
 
 from promptengineers.core.exceptions import ValidationException
+from promptengineers.core.interfaces.controllers import IController
 from promptengineers.models.request import RequestDataLoader, RequestMultiLoader
 from promptengineers.models.response import (ResponseFileLoader, ResponseCreateVectorStore,
 									ResponseListPineconeVectorStores)
 from promptengineers.fastapi.controllers import VectorSearchController, AuthController
 from promptengineers.core.utils import logger
+from promptengineers.core.exceptions import NotFoundException
 
 TAG = "Retrieval"
 router = APIRouter()
 auth_controller = AuthController()
 
-def get_controller(request: Request) -> VectorSearchController:
-	return VectorSearchController(request=request)
+def get_controller(request: Request) -> IController:
+	try:
+		return VectorSearchController(request=request, user_repo=request.state.user_repo)
+	except NotFoundException as e:
+		# Handle specific NotFoundException with a custom message or logging
+		logger.warn(f"Failed to initialize HistoryController: {str(e)}")
+		raise HTTPException(status_code=404, detail=f"Initialization failed: {str(e)}") from e
+	except Exception as e:
+		# Catch all other exceptions
+		logger.error(f"Unexpected error initializing HistoryController: {str(e)}")
+		raise HTTPException(status_code=500, detail="Internal server error") from e
 
 #################################################
 # Create vectorstore from files
