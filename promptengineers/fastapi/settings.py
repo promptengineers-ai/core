@@ -33,6 +33,7 @@ def get_controller(request: Request) -> IController:
 @router.get(
 	"/chat/settings",
 	tags=[TAG],
+	name='settings_list',
 	response_model=ResponseSettingsList
 )
 async def index(
@@ -69,6 +70,7 @@ async def index(
 @router.post(
 	"/chat/settings",
 	tags=[TAG],
+	name='settings_create',
 	response_model=ResponseCreate
 )
 async def create(
@@ -104,6 +106,7 @@ async def create(
 @router.get(
 	"/chat/settings/{setting_id}",
 	tags=[TAG],
+	name='settings_show',
 	response_model=ResponseSetting,
 )
 async def show(
@@ -140,6 +143,7 @@ async def show(
 @router.put(
 	"/chat/settings/{setting_id}",
 	tags=[TAG],
+	name='settings_update',
 	response_model=ResponseUpdate,
 )
 async def update(
@@ -172,6 +176,7 @@ async def update(
 @router.delete(
 	"/chat/settings/{setting_id}",
 	tags=[TAG],
+	name='settings_delete',
 	status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete(

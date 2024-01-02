@@ -23,6 +23,7 @@ auth_controller = AuthController()
 	"/files",
 	response_model=ResponseRetrieveFiles,
 	tags=[TAG],
+	name='storage_list_files',
 )
 async def list_files():
 	try:
@@ -54,6 +55,7 @@ async def list_files():
 	"/files",
 	response_model=ResponseFileStorage,
 	tags=[TAG],
+	name='storage_add_files',
 )
 async def save_files(
 	files: List[UploadFile] = File(...)
@@ -87,6 +89,7 @@ async def save_files(
 	"/files",
 	status_code=status.HTTP_204_NO_CONTENT,
 	tags=[TAG],
+	name='storage_delete_files',
 )
 async def delete_file(
 	prefix: str,

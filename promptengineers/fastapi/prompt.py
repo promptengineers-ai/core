@@ -31,6 +31,7 @@ def get_controller(request: Request) -> PromptController:
 @router.get(
 	"/prompt/system",
 	tags=[TAG],
+	name='prompt_system_list',
 	response_model=ResponsePromptSystemList
 )
 async def index(
@@ -67,6 +68,7 @@ async def index(
 @router.post(
 	"/prompt/system",
 	tags=[TAG],
+	name='prompt_system_create',
 	response_model=ResponsePromptSystem
 )
 async def create(
@@ -102,6 +104,7 @@ async def create(
 @router.get(
 	"/prompt/system/{prompt_id}",
 	tags=[TAG],
+	name='prompt_system_show',
 	response_model=ResponsePromptSystem,
 )
 async def show(
@@ -138,6 +141,7 @@ async def show(
 @router.put(
 	"/prompt/system/{prompt_id}",
 	tags=[TAG],
+	name='prompt_system_update',
 	response_model=ResponsePromptSystem,
 )
 async def update(
@@ -170,6 +174,7 @@ async def update(
 @router.delete(
 	"/prompt/system/{prompt_id}",
 	tags=[TAG],
+	name='prompt_system_delete',
 	status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete(
