@@ -15,12 +15,26 @@ from promptengineers.retrieval.strategies import VectorstoreContext
 from promptengineers.core.utils import logger
 from promptengineers.llms.utils import gather_tools
 from promptengineers.tools.utils import format_agent_actions
+from promptengineers.core.exceptions import NotFoundException
 
 router = APIRouter()
 TAG = "Chat"
 
 def get_controller(request: Request) -> ChatController:
-	return ChatController(request=request)
+	try:
+		return ChatController(
+			request=request, 
+			user_repo=request.state.user_repo, 
+			available_tools=request.state.available_tools
+		)
+	except NotFoundException as e:
+		# Handle specific NotFoundException with a custom message or logging
+		logger.warn(f"Failed to initialize HistoryController: {str(e)}")
+		raise HTTPException(status_code=404, detail=f"Initialization failed: {str(e)}") from e
+	except Exception as e:
+		# Catch all other exceptions
+		logger.error(f"Unexpected error initializing HistoryController: {str(e)}")
+		raise HTTPException(status_code=500, detail="Internal server error") from e
 
 #################################################
 # ChatGPT
@@ -28,6 +42,7 @@ def get_controller(request: Request) -> ChatController:
 @router.post(
 	"/chat",
 	tags=[TAG],
+	name='chat',
 	response_model=ResponseChat,
 	responses={
 		200: {
@@ -96,6 +111,7 @@ async def chat(
 @router.post(
 	"/chat/agent",
 	tags=[TAG],
+	name='chat_agent',
 	response_model=ResponseAgentChat,
 	responses={
 		200: {
@@ -196,6 +212,7 @@ async def agent(
 @router.post(
 	"/chat/vectorstore",
 	tags=[TAG],
+	name='chat_vectorstore',
 	response_model=ResponseVectorstoreChat,
 	responses={
 		200: {
@@ -221,7 +238,7 @@ async def vector_search(
 		user_id = getattr(request.state, "user_id", None)
 
 		# Retrieve User Tokens
-		token = chat_controller.user_repo.find_token(user_id, ['OPENAI_API_KEY']).get('OPENAI_API_KEY')
+		token = chat_controller.user_repo.find_token(user_id, 'OPENAI_API_KEY')
 
 		# Generate Embeddings
 		embeddings = EmbeddingFactory(body.model, token)
@@ -231,9 +248,10 @@ async def vector_search(
 			provider=body.provider,
 			index_name=body.vectorstore,
 			embeddings=embeddings(),
-			user_id=user_id,
+			user_id=chat_controller.user_id,
+			user_repo=chat_controller.user_repo,
 		)
-		vectostore_service = VectorstoreContext(vectorstore_strategy)
+		vectostore_service = VectorstoreContext(vectorstore_strategy())
 		vectorstore = vectostore_service.load()
 
 		# Check if the retrieved file is empty
@@ -252,9 +270,15 @@ async def vector_search(
 				temperature=body.temperature,
 				vectorstore=vectorstore,
 			)
+			formatted_docs = []
+			for doc in result['source_documents']:
+				formatted_docs.append({
+					'page_content': doc.page_content,
+					'metadata': doc.metadata,
+				})
 			data = ujson.dumps({
 				'message': result['answer'],
-				'documents': result['source_documents'],
+				'documents': formatted_docs,
 				'usage': {
 					'total_tokens': cb.total_tokens,
 					'prompt_tokens': cb.prompt_tokens,

@@ -10,12 +10,22 @@ from promptengineers.models.response import (ResponseSettingsList, ResponseSetti
                                             ResponseCreate, ResponseUpdate)
 from promptengineers.mongo.utils import JSONEncoder
 from promptengineers.core.utils import logger
+from promptengineers.core.exceptions import NotFoundException
 
 router = APIRouter()
 TAG = "Chat"
 
 def get_controller(request: Request) -> IController:
-	return SettingsController(request=request)
+	try:
+		return SettingsController(request=request, user_repo=request.state.user_repo)
+	except NotFoundException as e:
+		# Handle specific NotFoundException with a custom message or logging
+		logger.warn(f"Failed to initialize HistoryController: {str(e)}")
+		raise HTTPException(status_code=404, detail=f"Initialization failed: {str(e)}") from e
+	except Exception as e:
+		# Catch all other exceptions
+		logger.error(f"Unexpected error initializing HistoryController: {str(e)}")
+		raise HTTPException(status_code=500, detail="Internal server error") from e
 
 #################################################
 # List Chat Histories
@@ -23,6 +33,7 @@ def get_controller(request: Request) -> IController:
 @router.get(
 	"/chat/settings",
 	tags=[TAG],
+	name='settings_list',
 	response_model=ResponseSettingsList
 )
 async def index(
@@ -59,6 +70,7 @@ async def index(
 @router.post(
 	"/chat/settings",
 	tags=[TAG],
+	name='settings_create',
 	response_model=ResponseCreate
 )
 async def create(
@@ -94,6 +106,7 @@ async def create(
 @router.get(
 	"/chat/settings/{setting_id}",
 	tags=[TAG],
+	name='settings_show',
 	response_model=ResponseSetting,
 )
 async def show(
@@ -130,6 +143,7 @@ async def show(
 @router.put(
 	"/chat/settings/{setting_id}",
 	tags=[TAG],
+	name='settings_update',
 	response_model=ResponseUpdate,
 )
 async def update(
@@ -162,6 +176,7 @@ async def update(
 @router.delete(
 	"/chat/settings/{setting_id}",
 	tags=[TAG],
+	name='settings_delete',
 	status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete(

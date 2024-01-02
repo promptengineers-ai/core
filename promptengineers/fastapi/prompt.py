@@ -8,12 +8,22 @@ from promptengineers.models.request import ReqBodyPromptSystem
 from promptengineers.models.response import ResponsePromptSystemList, ResponsePromptSystem
 from promptengineers.mongo.utils import JSONEncoder
 from promptengineers.core.utils import logger
+from promptengineers.core.exceptions import NotFoundException
 
 router = APIRouter()
 TAG = "Prompt"
 
 def get_controller(request: Request) -> PromptController:
-	return PromptController(request=request)
+	try:
+		return PromptController(request=request, user_repo=request.state.user_repo)
+	except NotFoundException as e:
+		# Handle specific NotFoundException with a custom message or logging
+		logger.warn(f"Failed to initialize HistoryController: {str(e)}")
+		raise HTTPException(status_code=404, detail=f"Initialization failed: {str(e)}") from e
+	except Exception as e:
+		# Catch all other exceptions
+		logger.error(f"Unexpected error initializing HistoryController: {str(e)}")
+		raise HTTPException(status_code=500, detail="Internal server error") from e
 
 #################################################
 # List Chat Histories
@@ -21,6 +31,7 @@ def get_controller(request: Request) -> PromptController:
 @router.get(
 	"/prompt/system",
 	tags=[TAG],
+	name='prompt_system_list',
 	response_model=ResponsePromptSystemList
 )
 async def index(
@@ -57,6 +68,7 @@ async def index(
 @router.post(
 	"/prompt/system",
 	tags=[TAG],
+	name='prompt_system_create',
 	response_model=ResponsePromptSystem
 )
 async def create(
@@ -92,11 +104,12 @@ async def create(
 @router.get(
 	"/prompt/system/{prompt_id}",
 	tags=[TAG],
+	name='prompt_system_show',
 	response_model=ResponsePromptSystem,
 )
 async def show(
-    prompt_id: str,
-    controller: PromptController = Depends(get_controller),
+	prompt_id: str,
+	controller: PromptController = Depends(get_controller),
 ):
 	"""Retrieve resource"""
 	try:
@@ -128,6 +141,7 @@ async def show(
 @router.put(
 	"/prompt/system/{prompt_id}",
 	tags=[TAG],
+	name='prompt_system_update',
 	response_model=ResponsePromptSystem,
 )
 async def update(
@@ -160,6 +174,7 @@ async def update(
 @router.delete(
 	"/prompt/system/{prompt_id}",
 	tags=[TAG],
+	name='prompt_system_delete',
 	status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete(
