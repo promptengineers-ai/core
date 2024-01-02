@@ -32,6 +32,7 @@ def get_controller(request: Request) -> HistoryController:
 @router.get(
 	"/chat/history",
 	tags=[TAG],
+	name='history_list',
 	response_model=ResponseHistoryIndex
 )
 async def list_chat_histories(
@@ -70,6 +71,7 @@ async def list_chat_histories(
 @router.post(
 	"/chat/history",
 	tags=[TAG],
+	name='history_create',
 	response_model=ResponseCreate
 )
 async def create_chat_history(
@@ -105,6 +107,7 @@ async def create_chat_history(
 @router.get(
 	"/chat/history/{history_id}",
 	tags=[TAG],
+	name='history_show',
 	response_model=ResponseHistoryShow,
 )
 async def show_chat_history(
@@ -141,6 +144,7 @@ async def show_chat_history(
 @router.put(
 	"/chat/history/{history_id}",
 	tags=[TAG],
+	name='history_update',
 	response_model=ResponseUpdate,
 )
 async def update_chat_history(
@@ -173,6 +177,7 @@ async def update_chat_history(
 @router.delete(
 	"/chat/history/{history_id}",
 	tags=[TAG],
+	name='history_delete',
 	status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_chat_history(

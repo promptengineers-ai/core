@@ -35,6 +35,7 @@ def get_controller(request: Request) -> IController:
 #################################################
 @router.post(
 	"/vectorstores",
+	name='retrieval_vectorstore_create',
 	response_model=ResponseCreateVectorStore,
 	tags=[TAG]
 )
@@ -79,6 +80,7 @@ async def create_vectorstore(
 #################################################
 @router.post(
 	"/vectorstores/file",
+	name='retrieval_vectorstore_file_create',
 	response_model=ResponseFileLoader,
 	tags=[TAG]
 )
@@ -128,6 +130,7 @@ async def create_vectorstore_from_file(
 #################################################
 @router.post(
 	"/vectorstores/multi",
+	name='retrieval_vectorstore_multi_create',
 	response_model=ResponseCreateVectorStore,
 	tags=[TAG],
 	# include_in_schema=False # TODO: Needs some work
@@ -175,6 +178,7 @@ async def create_vectorstore_from_multiple_sources(
 ######################################
 @router.get(
 	"/vectorstores/pinecone",
+	name='retrieval_vectorstore_pinecone_list',
 	response_model=ResponseListPineconeVectorStores,
 	tags=[TAG]
 )
@@ -213,6 +217,7 @@ async def list_pinecone_vectorstores(controller: VectorSearchController = Depend
 ######################################
 @router.delete(
 	"/vectorstores/pinecone",
+	name='retrieval_vectorstore_pinecone_delete',
 	status_code=status.HTTP_204_NO_CONTENT,
 	tags=[TAG]
 )
@@ -237,6 +242,7 @@ async def delete_pinecone_vectorstore(
 ######################################
 @router.get(
 	"/vectorstores/redis",
+	name='retrieval_vectorstore_redis_list',
 	response_model=ResponseListPineconeVectorStores,
 	tags=[TAG]
 )
@@ -275,6 +281,7 @@ async def list_redis_vectorstores(controller: VectorSearchController = Depends(g
 ######################################
 @router.delete(
 	"/vectorstores/redis",
+	name='retrieval_vectorstore_redis_delete',
 	status_code=status.HTTP_204_NO_CONTENT,
 	tags=[TAG]
 )
