@@ -12,10 +12,6 @@ from promptengineers.models.response import (ResponseFileLoader, ResponseCreateV
 									ResponseListPineconeVectorStores)
 from promptengineers.fastapi.controllers import VectorSearchController, AuthController
 from promptengineers.core.utils import logger
-<<<<<<< HEAD
-from promptengineers.core.config.llm import OllamaModels, OpenAIModels
-=======
->>>>>>> master
 from promptengineers.core.exceptions import NotFoundException
 
 TAG = "Retrieval"
