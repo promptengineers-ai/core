@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Literal
 import traceback
 import ujson
 
@@ -12,6 +12,7 @@ from promptengineers.models.response import (ResponseFileLoader, ResponseCreateV
 									ResponseListPineconeVectorStores)
 from promptengineers.fastapi.controllers import VectorSearchController, AuthController
 from promptengineers.core.utils import logger
+from promptengineers.core.config.llm import OllamaModels, OpenAIModels
 from promptengineers.core.exceptions import NotFoundException
 
 TAG = "Retrieval"
@@ -86,7 +87,8 @@ async def create_vectorstore(
 )
 async def create_vectorstore_from_file(
 	index_name: str = Form(...),
-	provider: str = Form(...),
+	provider: Literal['pinecone', 'redis'] = Form(...),
+	embedding: Literal['text-embedding-ada-002', 'llama2:7b', 'llama2'] = Form(...),
 	files: List[UploadFile] = File(...),
 	controller: VectorSearchController = Depends(get_controller),
 ):
@@ -95,6 +97,7 @@ async def create_vectorstore_from_file(
 		await controller.create_vectorstore_from_files(
 			provider,
 			index_name,
+			embedding,
 			files
 		)
 
@@ -115,10 +118,11 @@ async def create_vectorstore_from_file(
 			detail=str(err)
 		) from err
 	except HTTPException as err:
-		logger.error("HTTPException: %s", err.detail, stack_info=True)
+		logger.error("HTTPException: %s", err.detail)
 		raise
 	except Exception as err:
-		logger.error("%s", err, stack_info=True)
+		tb = traceback.format_exc()
+		logger.error("[routes.vectorstores.create_vectorstore_from_file]: %s\n%s", err, tb)
 		raise HTTPException(
 			status_code=500,
 			detail=f"An unexpected error occurred. {str(err)}"
