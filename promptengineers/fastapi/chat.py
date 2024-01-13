@@ -141,7 +141,7 @@ async def agent(
 			# Retreve Vectorstore
 			vectorstore_strategy = RetreivalFactory(
 				provider=body.retrieval.provider,
-				index_name=body.retrieval.index_name,
+				index_name=f"{chat_controller.user_id}::{body.retrieval.index_name}",
 				embeddings=embeddings(),
 				user_id=chat_controller.user_id,
 				user_repo=chat_controller.user_repo,
@@ -246,7 +246,7 @@ async def vector_search(
 		# Retreve Vectorstore
 		vectorstore_strategy = RetreivalFactory(
 			provider=body.provider,
-			index_name=body.vectorstore,
+			index_name=f"{chat_controller.user_id}::{body.vectorstore}",
 			embeddings=embeddings(),
 			user_id=chat_controller.user_id,
 			user_repo=chat_controller.user_repo,
