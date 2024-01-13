@@ -46,7 +46,12 @@ async def create_vectorstore(
 	"""File Loader endpoint."""
 	logger.debug('[POST /vectorstores] Body: %s', str(body))
 	try:
-		await controller.create_multi_loader_vectorstore(body)
+		await controller.create_multi_loader_vectorstore(
+			body.provider,
+			f"{controller.request.state.user_id}::{body.index_name}",
+			body.embedding,
+			body.loaders
+		)
 
 		## Format Response
 		data = ujson.dumps({

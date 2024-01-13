@@ -77,9 +77,9 @@ def accumulate_files(files, user_id, tokens):
 ##############################################################
 ### Accumulate Loaders
 ##############################################################
-def accumulate_loaders(body, files=None, tmpdirname=None):
-	loaders = []
-	for loader in dict(body).get('loaders', []):
+def accumulate_loaders(loaders, files=None, tmpdirname=None):
+	accumulate_loaders = []
+	for loader in loaders:
 		try:
 			# First, try accessing as if loader is a dictionary
 			loader_type = loader['type']
@@ -110,7 +110,7 @@ def accumulate_loaders(body, files=None, tmpdirname=None):
 
 
 		doc_loader = LoaderFactory.create_loader(loader_type,  loader_data)
-		loaders.append(doc_loader)
+		accumulate_loaders.append(doc_loader)
 
 	if tmpdirname:
 		try:
@@ -124,14 +124,14 @@ def accumulate_loaders(body, files=None, tmpdirname=None):
 					loader,
 					{'file_path': file_path}
 				)
-				loaders.append(doc_loader)
+				accumulate_loaders.append(doc_loader)
 		except Exception as err:
 			logger.error(err)
 			raise HTTPException(
 				status_code=500,
 				detail=f"Error creating loaders in tmp directory: {str(err)}"
 			) from err
-	return loaders
+	return accumulate_loaders
 
 ##############################################################
 ### Create a FAISS Vectorstore
@@ -178,74 +178,79 @@ class VectorSearchController:
 	##############################################################
 	### Create multi loader vectorstore
 	##############################################################
-	async def create_multi_loader_vectorstore(self, body):
-		"""Create a vectorstore from multiple loaders."""
-		req_body = dict(body)
-		passed_file_names = req_body.get('files', [])
+	async def create_multi_loader_vectorstore(
+			self,
+			provider: str,
+			index_name: str,
+			embedding: str,
+			loaders: List[dict] = None,
+			files: List[str] = None
+	):
+		"""Create a vectorstore from multiple loaders with specific arguments."""
 		pinecone_keys = ['PINECONE_API_KEY', 'PINECONE_ENV', 'PINECONE_INDEX', 'OPENAI_API_KEY']
 		redis_keys = ['REDIS_URL', 'OPENAI_API_KEY']
-		if not passed_file_names:
-			if req_body.get('provider') == 'pinecone':
+		aws_keys = ['ACCESS_KEY_ID', 'ACCESS_SECRET_KEY', 'BUCKET']
+		if not files:
+			if provider == 'pinecone':
 				tokens = self.user_repo.find_token(self.user_id, pinecone_keys)
-				embeddings = EmbeddingFactory(req_body.get('embedding'), tokens.get('OPENAI_API_KEY'))
+				embeddings = EmbeddingFactory(embedding, tokens.get('OPENAI_API_KEY'))
 				validator.validate_api_keys(tokens, pinecone_keys)
 				pinecone_service = PineconeService(
 					api_key=tokens.get('PINECONE_API_KEY'),
 					env=tokens.get('PINECONE_ENV'),
 					index_name=tokens.get('PINECONE_INDEX'),
 				)
-				loaders = accumulate_loaders(body)
+				loaders = accumulate_loaders(loaders)
 				pinecone_service.from_documents(
 					loaders,
 					embeddings(),
-					namespace=dict(body).get('index_name')
+					namespace=index_name
 				)
 
-			if req_body.get('provider') == 'redis':
+			if provider == 'redis':
 				tokens = self.user_repo.find_token(self.user_id, redis_keys)
 				validator.validate_api_keys(tokens, redis_keys)
-				embeddings = EmbeddingFactory(req_body.get('embedding'), tokens.get('OPENAI_API_KEY'))
+				embeddings = EmbeddingFactory(embedding, tokens.get('OPENAI_API_KEY'))
 				redis_service = RedisService(
 					embeddings=embeddings(),
 					redis_url=tokens.get('REDIS_URL'),
-					index_name=req_body.get('index_name'),
+					index_name=index_name,
 				)
-				loaders = accumulate_loaders(body)
+				loaders = accumulate_loaders(loaders)
 				redis_service.add_docs(loaders)
 		else:
 			aws_keys = ['ACCESS_KEY_ID', 'ACCESS_SECRET_KEY', 'BUCKET']
 			tokens = self.user_repo.find_token(self.user_id, [*pinecone_keys, *aws_keys])
 			validator.validate_api_keys(tokens, [*pinecone_keys, *aws_keys])
 			# Accumulate Files
-			files = accumulate_files(passed_file_names, self.user_id, tokens)
+			accumulated_files = accumulate_files(files, self.user_id, tokens)
 
 			# Create a temporary directory
 			with tempfile.TemporaryDirectory() as tmpdirname:
 
 				# Your logic here to save uploaded files to tmpdirname
-				loaders = accumulate_loaders(body, files, tmpdirname)
+				loaders = accumulate_loaders(loaders, accumulated_files, tmpdirname)
 
-				if req_body.get('provider') == 'faiss':
-					faiss_vectorstore(loaders, tmpdirname, self.user_id, req_body.get('index_name'), tokens)
+				if provider == 'faiss':
+					faiss_vectorstore(loaders, tmpdirname, self.user_id, index_name, tokens)
 
-				if req_body.get('provider') == 'pinecone':
-					embeddings = EmbeddingFactory(req_body.get('embedding'), tokens.get('OPENAI_API_KEY'))
+				if provider == 'pinecone':
+					embeddings = EmbeddingFactory(embedding, tokens.get('OPENAI_API_KEY'))
 					pinecone_service = PineconeService(
 						api_key=tokens.get('PINECONE_API_KEY'),
 						env=tokens.get('PINECONE_ENV'),
 						index_name=tokens.get('PINECONE_INDEX'),
 					)
-					pinecone_service.from_documents(loaders, embeddings, namespace=req_body.get('index_name'))
+					pinecone_service.from_documents(loaders, embeddings(), namespace=index_name)
 
-				if req_body.get('provider') == 'redis':
+				if provider == 'redis':
 					tokens = self.user_repo.find_token(self.user_id, redis_keys)
 					validator.validate_api_keys(tokens, redis_keys)
 					redis_service = RedisService(
 						openai_api_key=tokens.get('OPENAI_API_KEY'),
 						redis_url=tokens.get('REDIS_URL'),
-						index_name=req_body.get('index_name'),
+						index_name=index_name,
 					)
-					loaders = accumulate_loaders(body)
 					redis_service.add_docs(loaders)
 
 	##############################################################
@@ -329,8 +334,14 @@ class VectorSearchController:
 		index_stats = pinecone_service.describe_index_stats()
 		namespaces = index_stats.get('namespaces')
 
+		# String to be removed
+		remove_str = f"{self.user_id}::"
+
+		# Trimming and including only the keys that were trimmed
+		trimmed_namespaces = {key.replace(remove_str, ''): value for key, value in namespaces.items() if remove_str in key}
+
 		return {
-			'vectorstores': list(namespaces.keys()),
+			'vectorstores': list(trimmed_namespaces.keys()),
 		}
 
 	##############################################################
@@ -348,7 +359,7 @@ class VectorSearchController:
 			env=tokens.get('PINECONE_ENV'),
 			index_name=tokens.get('PINECONE_INDEX'),
 		)
-		deleted = pinecone_service.delete(namespace=prefix)
+		deleted = pinecone_service.delete(namespace=f"{self.user_id}::{prefix}")
 		if deleted:
 			return True
 		else:

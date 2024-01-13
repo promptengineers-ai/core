@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.0.2
+### Changed
+  - Not enough considerations were being made for multi-app support. In light would like to go back to
+    0.0.x patches in order to take what's been learned from build POC apps into making this repository
+    truly ubiquitous no matter what app it is installed into. Striving to make 0.1.0 stable and does not
+    lock in users to functionality they do not want, but instead striving to make concepts easier to compose.
+
 ## 1.1.14
 ### Fixed
   - Forgot to resolve in fastapi/retreival (2024-01-03)
