@@ -192,7 +192,7 @@ class VectorSearchController:
 		aws_keys = ['ACCESS_KEY_ID', 'ACCESS_SECRET_KEY', 'BUCKET']
 		if not files:
 			if provider == 'pinecone':
-				tokens = self.user_repo.find_token(self.user_id, pinecone_keys)
+				tokens = await self.user_repo.find_token(self.user_id, pinecone_keys)
 				embeddings = EmbeddingFactory(embedding, tokens.get('OPENAI_API_KEY'))
 				validator.validate_api_keys(tokens, pinecone_keys)
 				pinecone_service = PineconeService(
@@ -208,7 +208,7 @@ class VectorSearchController:
 				)
 
 			if provider == 'redis':
-				tokens = self.user_repo.find_token(self.user_id, redis_keys)
+				tokens = await self.user_repo.find_token(self.user_id, redis_keys)
 				validator.validate_api_keys(tokens, redis_keys)
 				embeddings = EmbeddingFactory(embedding, tokens.get('OPENAI_API_KEY'))
 				redis_service = RedisService(
@@ -220,7 +220,7 @@ class VectorSearchController:
 				redis_service.add_docs(loaders)
 		else:
 			aws_keys = ['ACCESS_KEY_ID', 'ACCESS_SECRET_KEY', 'BUCKET']
-			tokens = self.user_repo.find_token(self.user_id, [*pinecone_keys, *aws_keys])
+			tokens = await self.user_repo.find_token(self.user_id, [*pinecone_keys, *aws_keys])
 			validator.validate_api_keys(tokens, [*pinecone_keys, *aws_keys])
 			# Accumulate Files
 			accumulated_files = accumulate_files(files, self.user_id, tokens)
@@ -244,7 +244,7 @@ class VectorSearchController:
 					pinecone_service.from_documents(loaders, embeddings(), namespace=index_name)
 
 				if provider == 'redis':
-					tokens = self.user_repo.find_token(self.user_id, redis_keys)
+					tokens = await self.user_repo.find_token(self.user_id, redis_keys)
 					validator.validate_api_keys(tokens, redis_keys)
 					redis_service = RedisService(
 						openai_api_key=tokens.get('OPENAI_API_KEY'),
@@ -277,7 +277,7 @@ class VectorSearchController:
 		## Get Tokens
 		if provider == 'pinecone':
 			keys = ['PINECONE_API_KEY', 'PINECONE_ENV', 'PINECONE_INDEX', 'OPENAI_API_KEY']
-			tokens = self.user_repo.find_token(self.user_id, keys)
+			tokens = await self.user_repo.find_token(self.user_id, keys)
 			## Check for token, else throw error
 			validator.validate_api_keys(tokens, keys)
 

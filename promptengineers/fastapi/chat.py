@@ -133,7 +133,7 @@ async def agent(
 		if body.retrieval.provider and body.retrieval.index_name:
 
 			# Retrieve User Tokens
-			token = chat_controller.user_repo.find_token(chat_controller.user_id, 'OPENAI_API_KEY')
+			token = await chat_controller.user_repo.find_token(chat_controller.user_id, 'OPENAI_API_KEY')
 
 			# Generate Embeddings
 			embeddings = EmbeddingFactory(body.model, token)
@@ -238,7 +238,7 @@ async def vector_search(
 		user_id = getattr(request.state, "user_id", None)
 
 		# Retrieve User Tokens
-		token = chat_controller.user_repo.find_token(user_id, 'OPENAI_API_KEY')
+		token = await chat_controller.user_repo.find_token(user_id, 'OPENAI_API_KEY')
 
 		# Generate Embeddings
 		embeddings = EmbeddingFactory(body.model, token)

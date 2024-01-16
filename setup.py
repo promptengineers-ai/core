@@ -12,7 +12,7 @@ setup(
     ],
     extras_require={
         'llms':[
-            'langchain', 
+            'langchain==0.0.354', 
             'openai', 
         ],
         'mongo': [

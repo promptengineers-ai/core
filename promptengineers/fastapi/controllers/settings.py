@@ -1,5 +1,6 @@
 from bson.objectid import ObjectId
 
+from promptengineers.core.config import MONGO_CONNECTION, MONGO_DB_NAME
 from promptengineers.core.interfaces.controllers import IController
 from promptengineers.core.interfaces.repos import IUserRepo
 from promptengineers.repos.user import UserRepo
@@ -18,8 +19,8 @@ class SettingsController(IController):
 		self.user_id = getattr(request.state, "user_id", None)
 		self.user_repo = user_repo or UserRepo()
 		self.settings_service = MongoService(
-			host=self.user_repo.find_token(self.user_id, 'MONGO_CONNECTION'),
-			db=db_name or self.user_repo.find_token(self.user_id, 'MONGO_DB_NAME'),
+			host=MONGO_CONNECTION,
+			db=db_name or MONGO_DB_NAME,
 			collection=col_name or 'settings'
 		)
 

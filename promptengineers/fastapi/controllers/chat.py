@@ -119,7 +119,7 @@ class ChatController:
 	##############################################################################
 	## Normal Chat
 	##############################################################################
-	def langchain_http_chat(
+	async def langchain_http_chat(
 		self,
 		messages,
 		model: str,
@@ -132,7 +132,7 @@ class ChatController:
 		# Retrieve the system message
 		system_message = retrieve_system_message(messages)
 		# Get Tokens
-		api_key = self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
+		api_key = await self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
 		# Check allowed
 		if model in ACCEPTED_OPENAI_MODELS:
 			model_service = ModelContext(strategy=OpenAIStrategy(api_key=api_key))
@@ -169,7 +169,7 @@ class ChatController:
 		# Attach the application user id to the system message
 		system_message = system_message + '\n' + "USER_ID=" + str(self.user_id)
 		# Get Tokens
-		api_key = self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
+		api_key = await self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
 		# Create the model
 		if model in ACCEPTED_OPENAI_MODELS:
 			model_service = ModelContext(strategy=OpenAIStrategy(api_key=api_key))
@@ -193,7 +193,7 @@ class ChatController:
 	##############################################################################
 	## Langchain Vectorstore Chat
 	##############################################################################
-	def langchain_http_vectorstore_chat(
+	async def langchain_http_vectorstore_chat(
 		self,
 		messages: list[Union[SystemMessage, UserMessage, AssistantMessage]] = None,
 		model: str = OpenAIModels.GPT_3_5_TURBO_16K.value,
@@ -207,7 +207,7 @@ class ChatController:
 		# Retrieve the system message
 		system_message = retrieve_system_message(messages)
 		# Get Tokens
-		api_key = self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
+		api_key = await self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
 		# Create the model
 		if model in ACCEPTED_OPENAI_MODELS:
 			model_service = ModelContext(strategy=OpenAIStrategy(api_key=api_key))
@@ -248,7 +248,7 @@ class ChatController:
 		# Create the model
 		if model in ACCEPTED_OPENAI_MODELS:
 			# Get Tokens
-			api_key = self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
+			api_key = await self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
 			model_service = ModelContext(strategy=OpenAIStrategy(api_key=api_key))
 			callback = AsyncIteratorCallbackHandler()
 			model = model_service.chat(
@@ -272,7 +272,7 @@ class ChatController:
 			await task
 		elif model in ACCEPTED_OLLAMA_MODELS:
 			# Get Tokens
-			base_url = self.user_repo.find_token(self.user_id, 'OLLAMA_BASE_URL')
+			base_url = await self.user_repo.find_token(self.user_id, 'OLLAMA_BASE_URL')
 			if base_url:
 				strategy = OllamaStrategy(base_url=base_url)
 			else:
@@ -314,7 +314,7 @@ class ChatController:
 		# Attach the application user id to the system message
 		system_message = system_message + '\n' + "USER_ID=" + str(self.user_id)
 		# Get Tokens
-		api_key = self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
+		api_key = await self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
 		# Create the model
 		if model in ACCEPTED_OPENAI_MODELS:
 			model_service = ModelContext(strategy=OpenAIStrategy(api_key=api_key))
@@ -376,7 +376,7 @@ class ChatController:
 		# Retrieve the system message
 		system_message = retrieve_system_message(messages)
 		# Get Tokens
-		api_key = self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
+		api_key = await self.user_repo.find_token(self.user_id, 'OPENAI_API_KEY')
 		# Create the callback
 		callback = AgentStreamCallbackHandler()
 		# Create the model
@@ -423,7 +423,7 @@ class ChatController:
 			yield token_stream()
 
 		elif model in ACCEPTED_OLLAMA_MODELS:
-			base_url = self.user_repo.find_token(self.user_id, 'OLLAMA_BASE_URL')
+			base_url = await self.user_repo.find_token(self.user_id, 'OLLAMA_BASE_URL')
 			if base_url:
 				strategy = OllamaStrategy(base_url=base_url)
 			else:
