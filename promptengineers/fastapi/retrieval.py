@@ -192,7 +192,7 @@ async def create_vectorstore_from_multiple_sources(
 )
 async def list_pinecone_vectorstores(controller: VectorSearchController = Depends(get_controller)):
 	try:
-		result = controller.retrieve_pinecone_vectorstores()
+		result = await controller.retrieve_pinecone_vectorstores()
 		# Format Response
 		data = ujson.dumps({
 			**result
@@ -234,7 +234,7 @@ async def delete_pinecone_vectorstore(
 	controller: VectorSearchController = Depends(get_controller)
 ):
 	try:
-		controller.delete_pinecone_vectorstore(prefix)
+		await controller.delete_pinecone_vectorstore(prefix)
 		return Response(status_code=204)
 	except ValidationException as err:
 		logger.warning("ValidationException: %s", err)

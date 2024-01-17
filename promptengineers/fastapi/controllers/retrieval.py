@@ -319,10 +319,10 @@ class VectorSearchController:
 	##############################################################
 	### Retrieve Pinecone Vectorstores
 	##############################################################
-	def retrieve_pinecone_vectorstores(self):
+	async def retrieve_pinecone_vectorstores(self):
 		## Get Tokens
 		keys = ['PINECONE_API_KEY', 'PINECONE_ENV', 'PINECONE_INDEX']
-		tokens = self.user_repo.find_token(self.user_id, keys)
+		tokens = await self.user_repo.find_token(self.user_id, keys)
 		## Check for token, else throw error
 		validator.validate_api_keys(tokens, keys)
 		## Get Vectorstores
@@ -347,10 +347,10 @@ class VectorSearchController:
 	##############################################################
 	### Delete Pinecone Vectorstore
 	##############################################################
-	def delete_pinecone_vectorstore(self, prefix: str):
+	async def delete_pinecone_vectorstore(self, prefix: str):
 		## Get Tokens
 		keys = ['PINECONE_API_KEY', 'PINECONE_ENV', 'PINECONE_INDEX']
-		tokens = self.user_repo.find_token(self.user_id, keys)
+		tokens = await self.user_repo.find_token(self.user_id, keys)
 		## Check for token, else throw error
 		validator.validate_api_keys(tokens, keys)
 		## Delete Vectorstore

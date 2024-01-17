@@ -20,10 +20,10 @@ class RetreivalFactory:
 		self.user_repo = user_repo
 		self.validator = Validator()
 
-	def __call__(self) -> PineconeStrategy | RedisStrategy:
+	async def __call__(self) -> PineconeStrategy | RedisStrategy:
 		if self.provider in 'pinecone':
 			required_keys = ['PINECONE_API_KEY', 'PINECONE_ENV', 'PINECONE_INDEX']
-			tokens = self.user_repo.find_token(self.user_id, required_keys)
+			tokens = await self.user_repo.find_token(self.user_id, required_keys)
 			self.validator.validate_api_keys(tokens, required_keys)
 			vectorstore_strategy = PineconeStrategy(
 				embeddings=self.embeddings,
@@ -34,7 +34,7 @@ class RetreivalFactory:
 			)
 		elif self.provider in 'redis':
 			required_keys = ['REDIS_URL']
-			tokens = self.user_repo.find_token(self.user_id, required_keys)
+			tokens = await self.user_repo.find_token(self.user_id, required_keys)
 			self.validator.validate_api_keys(tokens, required_keys)
 			vectorstore_strategy = RedisStrategy(
 				redis_url=tokens.get(required_keys[0]),

@@ -64,7 +64,7 @@ async def chat(
 		# You can use the stream variable in your function as needed
 		if not body.stream:
 			# Format Response
-			result, cb = chat_controller.langchain_http_chat(
+			result, cb = await chat_controller.langchain_http_chat(
 				messages=body.messages,
 				model=body.model,
 				temperature=body.temperature
@@ -100,7 +100,7 @@ async def chat(
 		)
 	except Exception as err:
 		tb = traceback.format_exc()
-		logger.error("[routes.files.list_files] Exception: %s\n%s", err, tb)
+		logger.error("[routes.chat.chat] Exception: %s\n%s", err, tb)
 		raise HTTPException(status_code=500, detail="Internal Server Error") from err
 
 
@@ -146,7 +146,7 @@ async def agent(
 				user_id=chat_controller.user_id,
 				user_repo=chat_controller.user_repo,
 			)
-			vectostore_service = VectorstoreContext(vectorstore_strategy)
+			vectostore_service = VectorstoreContext(await vectorstore_strategy())
 			vectorstore = vectostore_service.load()
 		
 		tools = gather_tools(
@@ -251,7 +251,7 @@ async def vector_search(
 			user_id=chat_controller.user_id,
 			user_repo=chat_controller.user_repo,
 		)
-		vectostore_service = VectorstoreContext(vectorstore_strategy())
+		vectostore_service = VectorstoreContext(await vectorstore_strategy())
 		vectorstore = vectostore_service.load()
 
 		# Check if the retrieved file is empty
@@ -264,7 +264,7 @@ async def vector_search(
 		# You can use the stream variable in your function as needed
 		if not body.stream:
 			# Format Response
-			result, cb = chat_controller.langchain_http_vectorstore_chat(
+			result, cb = await chat_controller.langchain_http_vectorstore_chat(
 				messages=body.messages,
 				model=body.model,
 				temperature=body.temperature,
