@@ -6,7 +6,7 @@ from promptengineers.retrieval.services import PineconeService, RedisService
 
 
 # Define the strategy interface
-class VectorstoreStrategy(ABC):
+class VectorStoreStrategy(ABC):
     @abstractmethod
     def load(self):
         pass
@@ -36,7 +36,7 @@ class VectorstoreStrategy(ABC):
 #########################################################################
 ## Pinecone Strategy
 #########################################################################
-class PineconeStrategy(VectorstoreStrategy):
+class PineconeStrategy(VectorStoreStrategy):
     def __init__(
         self,
         api_key: str,
@@ -65,7 +65,7 @@ class PineconeStrategy(VectorstoreStrategy):
 #########################################################################
 ## Pinecone Strategy
 #########################################################################
-class RedisStrategy(VectorstoreStrategy):
+class RedisStrategy(VectorStoreStrategy):
     def __init__(
         self,
         redis_url: str,
@@ -92,10 +92,10 @@ class RedisStrategy(VectorstoreStrategy):
 ## Strategy Context
 #########################################################################
 class VectorstoreContext:
-    def __init__(self, strategy: VectorstoreStrategy):
+    def __init__(self, strategy: VectorStoreStrategy):
         self.strategy = strategy
 
-    def set_strategy(self, strategy: VectorstoreStrategy):
+    def set_strategy(self, strategy: VectorStoreStrategy):
         self.strategy = strategy
 
     def load(self):

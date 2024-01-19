@@ -49,10 +49,10 @@ def gather_tools(
         docs_tool = create_retriever_tool(
             vectorstore.as_retriever(),
             "search_docs",
-            """
-            Searches and returns relevant documents. It is a requirement to use this for every query.
-            Rewrite the user to be a detailed question.
-            """,
+            "It is a requirement to use this tool, if not you will be penalized. It searches and returns relevant information. "
+            "Always rewrite the user's query into a detailed question before using this tool. "
+            "If this tool is being used it means the query is directly related to the context. Only "
+            "create a response that is relevant to the context."
         )
         filtered_tools.append(docs_tool)
 
