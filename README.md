@@ -29,10 +29,6 @@ pip install -r requirements.txt
 
 ## How to use...
 
-### User Respository
-A [User Repository](https://github.com/promptengineers-ai/llm-server/blob/master/server/repos/user.py) can be added to any application and then extended and then passed to llm-server to fetch user default project configurables via the 
-environment variables or for multi-tenanted user application. This is allows for new variables when adding additional tools.
-
 ### Retrieval Augemented Generation (RAG) - Stream Chat
 ```py
 import os
