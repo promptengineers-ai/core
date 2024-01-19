@@ -30,7 +30,7 @@ setup(
         'retrieval': [
             'promptengineers[llms]',
             'redis', 
-            'pinecone-client', 
+            'pinecone-client==2.2.4', 
             'youtube-transcript-api', 
             'pypdf', 
             'numexpr', 

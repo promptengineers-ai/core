@@ -14,7 +14,7 @@ class PineconeService:
 
 
     def client(self):
-        pinecone.init(api_key=self.api_key, environment=self.env or 'us-east1-gcp')
+        pinecone.init(api_key=self.api_key, environment=self.env)
         return pinecone
 
 

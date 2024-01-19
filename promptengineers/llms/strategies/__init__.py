@@ -22,7 +22,7 @@ class OpenAIStrategy(LLMStrategy):
 	def chat(
 		self,
 		model_name: str,
-		temperature: float or int = 0.9,
+		temperature: float = 0.9,
 		streaming: bool = False,
 		callbacks: list or None = None,
 	) -> str:
