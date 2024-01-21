@@ -28,6 +28,7 @@ setup(
             'python-multipart',
         ],
         'retrieval': [
+            'jq',
             'promptengineers[llms]',
             'redis', 
             'pinecone-client==2.2.4', 
@@ -37,6 +38,7 @@ setup(
             'tiktoken', 
             'nest_asyncio', 
             'beautifulsoup4',
+            # 'unstructured[all-docs]'
         ],
         'tools': [
             'promptengineers[llms]',

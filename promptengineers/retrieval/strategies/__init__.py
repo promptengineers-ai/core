@@ -8,6 +8,10 @@ from promptengineers.retrieval.services import PineconeService, RedisService
 # Define the strategy interface
 class VectorStoreStrategy(ABC):
     @abstractmethod
+    def add(self, loaders, chunk_size: int = 1000, chunk_overlap: int = 100):
+        pass
+
+    @abstractmethod
     def load(self):
         pass
 
@@ -50,14 +54,26 @@ class PineconeStrategy(VectorStoreStrategy):
         self.namespace = namespace
         self.index_name = index_name
         self.embeddings = embeddings
-
-    def load(self):
-        pinecone_service = PineconeService(
+        self.service = PineconeService(
 			api_key=self.api_key,
 			env=self.env,
 			index_name=self.index_name,
 		)
-        return pinecone_service.from_existing(
+
+    def list(self):
+        return self.service.describe_index_stats()
+
+    def add(self, loaders, chunk_size=1000, chunk_overlap=100):
+        return self.service.from_documents(
+            loaders=loaders,
+            embeddings=self.embeddings,
+            namespace=self.namespace,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap
+        )
+
+    def load(self):
+        return self.service.from_existing(
             embeddings=self.embeddings,
             namespace=self.namespace
         )
@@ -76,15 +92,25 @@ class RedisStrategy(VectorStoreStrategy):
         self.redis_url = redis_url
         self.index_name = index_name
         self.index_schema = index_schema
-        self.embeddings = embeddings
-
-    def load(self):
-        redis_service = RedisService(
+        self.embeddings = embeddings,
+        self.service = RedisService(
 			redis_url=self.redis_url,
 			index_name=self.index_name,
             embeddings=self.embeddings
 		)
-        return redis_service.from_existing(
+
+    def list(self):
+        return self.service.list_indexes()
+
+    def add(self, loaders, chunk_size=1000, chunk_overlap=100):
+        return self.service.add_docs(
+            loaders=loaders,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap
+        )
+
+    def load(self):
+        return self.service.from_existing(
             schema=self.index_schema
         )
 
@@ -97,6 +123,9 @@ class VectorstoreContext:
 
     def set_strategy(self, strategy: VectorStoreStrategy):
         self.strategy = strategy
+
+    def add(self, loaders, chunk_size: int = 1000, chunk_overlap: int = 100):
+        return self.strategy.add(loaders, chunk_size, chunk_overlap)
 
     def load(self):
         return self.strategy.load()

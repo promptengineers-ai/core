@@ -1,5 +1,8 @@
 """Agent Chat"""
 import ujson
+from typing import Any
+
+from langchain.callbacks import get_openai_callback
 from promptengineers.core.config.llm import ACCEPTED_OPENAI_MODELS
 from promptengineers.llms.services.langchain.callbacks import AgentStreamCallbackHandler
 from promptengineers.llms.services.langchain.chains import ChainService
@@ -7,6 +10,46 @@ from promptengineers.llms.strategies import OpenAIStrategy, ModelContext
 from promptengineers.llms.utils import retrieve_chat_messages, retrieve_system_message
 from promptengineers.stream.utils import token_stream
 
+############################################################################
+## Prompt Engineers AI - Agent HTTP Chat
+############################################################################
+async def langchain_http_agent_chat(
+    messages,
+    model: str,
+    tools,
+    temperature: float or int = 0.0,
+    openai_api_key: str = None,
+) -> (str, Any):
+    """Send a message to the chatbot and yield the response."""
+    filtered_messages = retrieve_chat_messages(messages)
+    # Retrieve the chat history
+    chat_history = list(zip(filtered_messages[::2], filtered_messages[1::2]))
+    # Retrieve the system message
+    system_message = retrieve_system_message(messages)
+    # Create the model
+    if model in ACCEPTED_OPENAI_MODELS:
+        model_service = ModelContext(strategy=OpenAIStrategy(api_key=openai_api_key))
+    else:
+        raise NotImplementedError(f"Model {model} not implemented")
+
+    model = model_service.chat(
+        model_name=model,
+        temperature=temperature,
+        streaming=False
+    )
+    with get_openai_callback() as cb:
+        # Retrieve the conversation
+        chain = ChainService(model).agent_with_tools(system_message=system_message,
+                                                    chat_history=chat_history,
+                                                    tools=tools)
+        # Begin a task that runs in the background.
+        response = await chain.ainvoke(filtered_messages[-1])
+    return response, cb
+
+
+############################################################################
+## Prompt Engineers AI - Agent Stream Chat
+############################################################################
 async def langchain_stream_agent_chat(
     messages,
     model: str,
@@ -34,7 +77,6 @@ async def langchain_stream_agent_chat(
         callbacks=[callback]
     )
     query = {'input': filtered_messages[-1], 'chat_history': chat_history}
-    # tools = load_tools(tools, llm=model)
     agent_executor = ChainService(model).agent_with_tools(system_message=system_message,
                                                         chat_history=chat_history,
                                                         tools=tools,
