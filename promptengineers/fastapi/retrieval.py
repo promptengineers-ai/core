@@ -48,7 +48,7 @@ async def create_vectorstore(
 	"""File Loader endpoint."""
 	logger.debug('[POST /vectorstores] Body: %s', str(body))
 	try:
-		tokens = controller.user_repo.find_token(
+		tokens = await controller.user_repo.find_token(
 			controller.user_id, 
 			['OPENAI_API_KEY', 'PINECONE_API_KEY', 'PINECONE_ENV', 'PINECONE_INDEX', 'REDIS_URL']
 		)

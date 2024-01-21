@@ -131,7 +131,7 @@ async def agent(
 ):
 	"""Chat endpoint."""
 	try:
-		tokens = chat_controller.user_repo.find_token(
+		tokens = await chat_controller.user_repo.find_token(
 			chat_controller.user_id, 
 			['OPENAI_API_KEY', 'PINECONE_API_KEY', 'PINECONE_ENV', 'PINECONE_INDEX', 'REDIS_URL']
 		)
@@ -261,7 +261,7 @@ async def vector_search(
 		logger.debug('[POST /chat/vectorstore] Query: %s', str(body))
 
 		# Retrieve User Tokens
-		tokens = chat_controller.user_repo.find_token(
+		tokens = await chat_controller.user_repo.find_token(
 			chat_controller.user_id, 
 			['OPENAI_API_KEY', 'PINECONE_API_KEY', 'PINECONE_ENV', 'PINECONE_INDEX', 'REDIS_URL']
 		)
