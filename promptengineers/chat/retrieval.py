@@ -1,18 +1,59 @@
 """Retrieval Chat"""
-from typing import AsyncIterable
+from typing import AsyncIterable, Union, Any
 
-from promptengineers.core.config.llm import ACCEPTED_OLLAMA_MODELS, ACCEPTED_OPENAI_MODELS
+from langchain.callbacks import get_openai_callback
+from promptengineers.core.config.llm import ACCEPTED_OLLAMA_MODELS, ACCEPTED_OPENAI_MODELS, OpenAIModels
 from promptengineers.llms.services.langchain.callbacks import AgentStreamCallbackHandler
 from promptengineers.llms.services.langchain.chains import ChainService
 from promptengineers.llms.strategies import OllamaStrategy, OpenAIStrategy, ModelContext
 from promptengineers.llms.utils import retrieve_chat_messages, retrieve_system_message, get_chat_history
+from promptengineers.models.message import SystemMessage, UserMessage, AssistantMessage
 from promptengineers.retrieval.strategies import VectorstoreContext
 from promptengineers.stream.utils import token_stream
 from promptengineers.prompts.templates import get_retrieval_template
 
-async def langchain_stream_vectorstore_chat(
-	messages: list[str],
-	model: str,
+############################################################################
+## Prompt Engineers AI - Retrieval HTTP Chat
+############################################################################
+async def langchain_http_retrieval_chat(
+	messages: list[Union[SystemMessage, UserMessage, AssistantMessage]],
+	model: str = OpenAIModels.GPT_3_5_TURBO_16K.value,
+	temperature: float or int = 0.9,
+	vectorstore: VectorstoreContext = None,
+	openai_api_key: str = None,
+) -> (str, Any):
+	"""Send a message to the chatbot and yield the response."""
+	filtered_messages = retrieve_chat_messages(messages)
+	# Retrieve the chat history
+	chat_history = list(zip(filtered_messages[::2], filtered_messages[1::2])) ## TODO: Fix this
+	# Retrieve the system message
+	system_message = retrieve_system_message(messages)
+	# Create the model
+	if model in ACCEPTED_OPENAI_MODELS:
+		model_service = ModelContext(strategy=OpenAIStrategy(api_key=openai_api_key))
+	else:
+		raise NotImplementedError(f"Model {model} not implemented")
+
+	model = model_service.chat(
+		model_name=model,
+		temperature=temperature,
+		streaming=False
+	)
+	with get_openai_callback() as cb:
+		# Retrieve the conversation
+		chain = ChainService(model).conversation_retrieval(
+			system_message=system_message, vectorstore=vectorstore, chat_history=chat_history
+		)
+		# Begin a task that runs in the background.
+		response = chain(filtered_messages[-1], return_only_outputs=True)
+	return response, cb
+
+############################################################################
+## Prompt Engineers AI - Retrieval Stream Chat
+############################################################################
+async def langchain_stream_retrieval_chat(
+	messages: list[Union[SystemMessage, UserMessage, AssistantMessage]],
+	model: OpenAIModels,
 	temperature: float = 0.9,
 	vectorstore: VectorstoreContext = None,
 	openai_api_key: str = None,

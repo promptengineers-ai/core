@@ -1,99 +1,85 @@
 import nest_asyncio
 from langchain.document_loaders import (CSVLoader, DirectoryLoader, GitbookLoader,
-										PyPDFLoader, TextLoader,
-										UnstructuredHTMLLoader,
+										PyPDFLoader, TextLoader, JSONLoader, RecursiveUrlLoader,
+										ReadTheDocsLoader, DataFrameLoader, UnstructuredHTMLLoader, 
 										UnstructuredMarkdownLoader,
 										UnstructuredURLLoader, WebBaseLoader,
 										YoutubeLoader, SitemapLoader, BlockchainDocumentLoader)
 from langchain.document_loaders.blockchain import BlockchainType
-
 from promptengineers.core.config import ALCHEMY_API_KEY
-from promptengineers.core.utils import logger
 from promptengineers.retrieval.loaders import CopyPasteLoader
-from promptengineers.retrieval.utils import get_links
 
 nest_asyncio.apply()
 
 class LoaderFactory:
-	@staticmethod
-	def create_loader(
-		loader_type: ('gitbook', 'web_base', 'yt', 'polygon', 'ethereum', 'sitemap', 'website', 'urls', 'copy', 'txt', 'html', 'md', 'directory', 'csv', 'pdf'),
-		body
-	):
-		if loader_type == 'gitbook':
-			urls = body.get('urls', [])
-			logger.info('[LoaderFactory.create_loader] Gitbook Link: %s', urls[0])
-			return GitbookLoader(urls[0], load_all_paths=True)
+    LOADER_CLASSES = {
+        'gitbook': GitbookLoader,
+        'web_base': WebBaseLoader,
+        'website': RecursiveUrlLoader,               # Alias for 'web_base
+        'youtube': YoutubeLoader,
+        'polygon': BlockchainDocumentLoader,
+        'ethereum': BlockchainDocumentLoader,
+        'sitemap': SitemapLoader,
+        'urls': UnstructuredURLLoader,          # Requires `unstructred` pip package (2.07 GB)
+        'copy': CopyPasteLoader,
+        'txt': TextLoader,
+        'html': UnstructuredHTMLLoader,			# Requires `unstructred` pip package (2.07 GB)
+        'md': UnstructuredMarkdownLoader,       # Requires `unstructred` pip package (2.07 GB)
+        'directory': DirectoryLoader,           # Requires `unstructred` pip package (2.07 GB)
+        'csv': CSVLoader,
+        'pdf': PyPDFLoader,
+        'json': JSONLoader,
+        'pandas': DataFrameLoader,              # Requires `pandas`
+        'readthedocs': ReadTheDocsLoader,       # Requires `beautifulsoup4`
+    }
 
-		if loader_type == 'web_base':
-			urls = body.get('urls', [])
-			logger.info('[LoaderFactory.create_loader] Web Base: %s', urls[0])
-			return WebBaseLoader(urls[0])
+    @staticmethod
+    def create(
+        loader_type: ('gitbook', 'web_base', 'website', 'youtube', 'polygon', 'ethereum', 'sitemap', 'urls', 'copy', 'txt', 'html', 'md', 'directory', 'csv', 'pdf', 'json', 'pandas', 'readthedocs'), 
+        loader_config
+    ):
+        loader_class = LoaderFactory.LOADER_CLASSES.get(loader_type)
+        if not loader_class:
+            raise ValueError(f'Unsupported document loader type: {loader_type}')
 
-		if loader_type == 'yt':
-			yt_id = body.get('ytId')
-			logger.info('[LoaderFactory.create_loader] Youtube: https://youtube.com/watch?v=%s', yt_id)
-			return YoutubeLoader(yt_id)
+        # Special handling for blockchain loaders
+        if loader_type in {'polygon', 'ethereum'}:
+            blockchain_type = BlockchainType.POLYGON_MAINNET if loader_type == 'polygon' else None
+            return loader_class(
+                contract_address=loader_config.get('contract_address', ''),
+                blockchainType=blockchain_type,
+                api_key=ALCHEMY_API_KEY
+            )
 
-		if loader_type == 'polygon':
-			contract_address = body.get('contract_address', '')
-			logger.info('[LoaderFactory.create_loader] Polygon Contract Address: %s', contract_address)
-			return BlockchainDocumentLoader(
-				contract_address=contract_address,
-				blockchainType=BlockchainType.POLYGON_MAINNET,
-				api_key=ALCHEMY_API_KEY,
-			)
+        # Special handling for the 'copy' loader
+        if loader_type == 'copy':
+            return loader_class(text=loader_config.get('text'))
 
-		if loader_type == 'ethereum':
-			contract_address = body.get('contract_address', '')
-			logger.info('[LoaderFactory.create_loader] Ethereum Contract Address: %s', contract_address)
-			return BlockchainDocumentLoader(
-				contract_address=contract_address,
-				api_key=ALCHEMY_API_KEY,
-			)
+        if loader_type == 'pandas':
+            return loader_class(loader_config.get('df'), 
+                                page_content_column=loader_config.get('page_content_column'))
+        
+        if loader_type == 'readthedocs':
+            return loader_class(path=loader_config.get('path'), features='html.parser')
+        
+        if loader_type == 'gitbook':
+            urls = loader_config.get('urls', [])
+            return loader_class(urls=urls[0], load_all_paths=True)
 
-		if loader_type == 'sitemap':
-			urls = body.get('urls', [])
-			logger.info('[LoaderFactory.create_loader] Sitemap: %s', urls)
-			return SitemapLoader(web_path=urls[0])
+        # Handling for loaders that require URLs or file paths
+        if loader_type in {'web_base', 'sitemap', 'website', 'urls'}:
+            urls = loader_config.get('urls', [])
+            return loader_class(urls[0])
 
-		if loader_type == 'website':
-			urls = body.get('urls', [])
-			unique_links = get_links(urls[0])
-			logger.info('[LoaderFactory.create_loader] Website: %s', unique_links)
-			return UnstructuredURLLoader(urls=unique_links)
+        if loader_type == 'youtube':
+            urls = loader_config.get('urls', [])
+            return loader_class.from_youtube_url(urls[0], add_video_info=False)
+        
+        if loader_type == 'json':
+            return loader_class(file_path=loader_config.get('file_path'),
+                                jq_schema=loader_config.get('jq_schema'),
+                                text_content=loader_config.get('text_content'),
+                                json_lines=loader_config.get('json_lines'))
 
-		if loader_type == 'urls':
-			urls = body.get('urls', [])
-			logger.info('[LoaderFactory.create_loader] URLs: %s', urls)
-			return UnstructuredURLLoader(urls=urls)
-
-		if loader_type == 'copy':
-			logger.info('[LoaderFactory.create_loader] Copy %s', body.get("text")[:500] + '...')
-			return CopyPasteLoader(text=body.get('text'))
-
-		if loader_type == 'txt':
-			logger.info('[LoaderFactory.create_loader] Text: %s', body.get("file_path"))
-			return TextLoader(body.get('file_path'))
-
-		if loader_type == 'html':
-			logger.info('[LoaderFactory.create_loader] HTML: %s', body.get("file_path"))
-			return UnstructuredHTMLLoader(body.get('file_path'))
-
-		if loader_type == 'md':
-			logger.info('[LoaderFactory.create_loader] Markdown: %s', body.get("file_path"))
-			return UnstructuredMarkdownLoader(body.get('file_path'))
-
-		if loader_type == 'directory':
-			logger.info('[LoaderFactory.create_loader] Directory: %s', body.get("file_path"))
-			return DirectoryLoader(body.get('file_path'), glob="**/*")
-
-		if loader_type == 'csv':
-			logger.info('[LoaderFactory.create_loader] CSV: %s', body.get("file_path"))
-			return CSVLoader(body.get('file_path'))
-
-		if loader_type == 'pdf':
-			logger.info('[LoaderFactory.create_loader] PDF: %s', body.get("file_path"))
-			return PyPDFLoader(body.get('file_path'))
-
-		raise ValueError(f'Unsupported document loader type: {loader_type}')
+        # Handling for file-based loaders
+        return loader_class(loader_config.get('file_path'))
