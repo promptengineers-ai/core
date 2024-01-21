@@ -41,7 +41,7 @@ class EmbeddingFactory:
         :raises ValueError: If the language model is not supported.
         """
         if llm in ACCEPTED_OPENAI_MODELS:
-            return OpenAIEmbeddings(openai_api_key=token)
+            return OpenAIEmbeddings(openai_api_key=token, disallowed_special=())
         elif llm in ACCEPTED_OLLAMA_MODELS:
             return OllamaEmbeddings(base_url=base_url or 'http://127.0.0.1:11434')
         else:
