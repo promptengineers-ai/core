@@ -1,10 +1,12 @@
 ########################################################################
-## Prompt Engineers AI - Retrieval Augmented Generation (RAG)
+## Prompt Engineers AI - Agent Chat equipped w/ tools
 ########################################################################
 import os
 import asyncio
 
-from promptengineers.chat import langchain_stream_vectorstore_chat
+from promptengineers.chat import langchain_http_agent_chat
+from promptengineers.core.config.tools import AVAILABLE_TOOLS
+from promptengineers.llms.utils import gather_tools
 from promptengineers.retrieval.factories import EmbeddingFactory, RetrievalFactory
 from promptengineers.retrieval.strategies import VectorstoreContext
 
@@ -21,17 +23,20 @@ NAMESPACE = '63f0962f9a09c84c98ab6caf::formio'
 EMBEDDING_LLM = 'text-embedding-ada-002'
 
 # Chat Constants
-CHAT_LLM = 'gpt-3.5-turbo'
-TEMPERATURE = 0.9
+CHAT_LLM = 'gpt-3.5-turbo-1106'
+TEMPERATURE = 0.1
 MESSAGES = [
     {
         'role': 'system', 
-        'content': 'You are a helpful document retrieval AI, '
-                    'use the context to answer the user queries.'
+        'content': 'You are a powerful AI assistant, you are equipped with tools '
+                    'to help you accomplish your tasks. Query the context when you need '
+                    'additional information to complete your task. If the user query is not '
+                    'related to the context then you can use the tools complete the task.'
     },
     {
         'role': 'user', 
-        'content': 'Can you summarize the context?'
+        'content': 'What is 14125 compounded annually for 5 years at 4 percent for 23 years?' # Math Agent
+        # 'content': 'Can you provide a react code sample to render a form in Form.io?'           # Retrieval Agent
     }
 ]
 
@@ -56,16 +61,22 @@ vectostore_service = VectorstoreContext(retrieval_provider.create_strategy())
 # Load the vectorstore using the service context
 vectorstore = vectostore_service.load()
 
+# Gather the tools
+tools = gather_tools(tools=['math_tool'],
+                    available_tools=AVAILABLE_TOOLS,
+                    vectorstore=vectorstore,
+                    plugins=[])
+
 # Run the chat
 async def main():
-    response = langchain_stream_vectorstore_chat(
+    response, cb = await langchain_http_agent_chat(
         messages=MESSAGES,         
-        model=CHAT_LLM, 
+        model=CHAT_LLM,
+        tools=tools,
         temperature=TEMPERATURE, 
-        vectorstore=vectorstore,
         openai_api_key=OPENAI_API_KEY
     )
-    async for data in response:
-        print(data)
+    print(response)
+    print(cb)
 
 asyncio.run(main())
