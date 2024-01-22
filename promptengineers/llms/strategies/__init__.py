@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from langchain.llms import Ollama
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 
 # Define the strategy interface
 class LLMStrategy(ABC):
@@ -22,7 +22,7 @@ class OpenAIStrategy(LLMStrategy):
 	def chat(
 		self,
 		model_name: str,
-		temperature: float or int = 0.9,
+		temperature: float = 0.9,
 		streaming: bool = False,
 		callbacks: list or None = None,
 	) -> str:

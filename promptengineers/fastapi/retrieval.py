@@ -11,6 +11,8 @@ from promptengineers.models.request import RequestDataLoader, RequestMultiLoader
 from promptengineers.models.response import (ResponseFileLoader, ResponseCreateVectorStore,
 									ResponseListPineconeVectorStores)
 from promptengineers.fastapi.controllers import VectorSearchController, AuthController
+from promptengineers.retrieval.factories import RetrievalFactory, EmbeddingFactory, LoaderFactory
+from promptengineers.retrieval.strategies import VectorstoreContext
 from promptengineers.core.utils import logger
 from promptengineers.core.exceptions import NotFoundException
 
@@ -46,12 +48,65 @@ async def create_vectorstore(
 	"""File Loader endpoint."""
 	logger.debug('[POST /vectorstores] Body: %s', str(body))
 	try:
-		await controller.create_multi_loader_vectorstore(
-			body.provider,
-			f"{controller.request.state.user_id}::{body.index_name}",
-			body.embedding,
-			body.loaders
+		tokens = await controller.user_repo.find_token(
+			controller.user_id, 
+			['OPENAI_API_KEY', 'PINECONE_API_KEY', 'PINECONE_ENV', 'PINECONE_INDEX', 'REDIS_URL']
 		)
+
+		# Generate Embeddings
+		embedding = EmbeddingFactory(body.embedding, tokens.get('OPENAI_API_KEY'))
+
+		# Generate Provider Keys
+		if body.provider == 'redis':
+			provider_keys={
+				'redis_url': tokens.get('REDIS_URL'),
+				'index_name': f"{controller.request.state.user_id}::{body.index_name}",
+			}
+		elif body.provider == 'pinecone':
+			provider_keys = {
+				'api_key': tokens.get('PINECONE_API_KEY'),
+				'env': tokens.get('PINECONE_ENV'),
+				'index_name': tokens.get('PINECONE_INDEX'),
+				'namespace': f"{controller.request.state.user_id}::{body.index_name}",
+			}
+		else:
+			raise HTTPException(
+				status_code=400,
+				detail=f"Invalid retrieval provider: {body.provider}"
+			)
+		
+		# Generate Loaders
+		all_loaders = []
+		for loader_config in body.loaders:
+			try:
+				loader = LoaderFactory.create(loader_type=loader_config['type'], loader_config=loader_config)
+				all_loaders.append(loader)
+			except ValueError as e:
+				raise HTTPException(
+					status_code=500,
+					detail=f"Error creating loader: {e}"
+				)
+			except Exception as e:
+				raise HTTPException(
+					status_code=500,
+					detail=f"Unexpected error: {e}"
+				)
+			
+		# Generate Retrieval Provider
+		try:
+			retrieval_provider = RetrievalFactory(
+				provider=body.provider,
+				embeddings=embedding.create_embedding(),
+				provider_keys=provider_keys
+			)
+			# Create a vector store service context
+			vectostore_service = VectorstoreContext(retrieval_provider.create_strategy())
+			vectostore_service.add(all_loaders)
+		except Exception as e:
+			raise HTTPException(
+				status_code=500,
+				detail=f"Error processing document: {e}"
+			)
 
 		## Format Response
 		data = ujson.dumps({
@@ -70,11 +125,12 @@ async def create_vectorstore(
 			detail=str(err)
 		) from err
 	except HTTPException as err:
-		logger.error("HTTPException: %s", err.detail, stack_info=True)
+		tb = traceback.format_exc()
+		logger.error("[routes.vectorstores.create_vectorstore] HTTPException: %s\n%s", err, tb)
 		raise
 	except Exception as err:
 		tb = traceback.format_exc()
-		logger.error("[routes.vectorstores.create_vectorstore]: %s\n%s", err, tb)
+		logger.error("[routes.vectorstores.create_vectorstore] Exception: %s\n%s", err, tb)
 		raise HTTPException(
 			status_code=500,
 			detail=f"An unexpected error occurred. {str(err)}"
@@ -192,7 +248,7 @@ async def create_vectorstore_from_multiple_sources(
 )
 async def list_pinecone_vectorstores(controller: VectorSearchController = Depends(get_controller)):
 	try:
-		result = controller.retrieve_pinecone_vectorstores()
+		result = await controller.retrieve_pinecone_vectorstores()
 		# Format Response
 		data = ujson.dumps({
 			**result
@@ -234,7 +290,7 @@ async def delete_pinecone_vectorstore(
 	controller: VectorSearchController = Depends(get_controller)
 ):
 	try:
-		controller.delete_pinecone_vectorstore(prefix)
+		await controller.delete_pinecone_vectorstore(prefix)
 		return Response(status_code=204)
 	except ValidationException as err:
 		logger.warning("ValidationException: %s", err)

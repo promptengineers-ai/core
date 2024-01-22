@@ -7,12 +7,11 @@ class Retrieval(BaseModel):
     provider: Optional[str] = None
     index_name: Optional[str] = None
 
-    class Config:  # pylint: disable=too-few-public-methods
-        """Contains the information needed to document retrieval augmented generation."""
-
-        json_schema_extra = {
+    __config__ = {
+		"json_schema_extra": {
             "example": {
                 "provider": "pinecone",
                 "index_name": "Formio",
             }
         }
+    }

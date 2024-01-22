@@ -42,11 +42,11 @@ class History(BaseModel): # pylint: disable=too-few-public-methods
 	setting: Optional[str] = None
 	tags: Optional[list[str]] = None
 
-	class Config: # pylint: disable=too-few-public-methods
-		"""A message to send to the chatbot."""
-		json_schema_extra = {
+	__config__ = {
+		"json_schema_extra": {
 			"example": HISTORY
 		}
+	}
 
 class HistoryDocument(History): # pylint: disable=too-few-public-methods
 	"""A message to send to the chatbot."""
@@ -54,20 +54,20 @@ class HistoryDocument(History): # pylint: disable=too-few-public-methods
 	created_at: int
 	updated_at: int
 
-	class Config: # pylint: disable=too-few-public-methods
-		"""Message history document"""
-		json_schema_extra = {
+	__config__ = {
+		"json_schema_extra": {
 			"example": HISTORY_DOCUMENT
 		}
+	}
 
 class HistoryIndex(HistoryDocument): # pylint: disable=too-few-public-methods
 	"""A message to send to the chatbot."""
 	histories: list[History]
 
-	class Config: # pylint: disable=too-few-public-methods
-		"""A message to send to the chatbot."""
-		json_schema_extra = {
+	__config__ = {
+		"json_schema_extra": {
 			"example": {
 				"histories": [HISTORY_DOCUMENT]
 			}
 		}
+	}

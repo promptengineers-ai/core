@@ -3,7 +3,7 @@ from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
 from langchain.callbacks import get_openai_callback
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter, RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 

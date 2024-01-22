@@ -48,11 +48,11 @@ class ChatSettings(BaseModel): # pylint: disable=too-few-public-methods
 	retrieval: Retrieval = None
 	tags: Optional[list[str]] = None
 
-	class Config: # pylint: disable=too-few-public-methods
-		"""Agent Settings Template"""
-		json_schema_extra = {
+	__config__ = {
+		"json_schema_extra": {
 			"example": CHAT_SETTINGS
 		}
+	}
 
 class ChatSettingDocument(ChatSettings): # pylint: disable=too-few-public-methods
 	"""Chat Settings Template"""
@@ -61,21 +61,21 @@ class ChatSettingDocument(ChatSettings): # pylint: disable=too-few-public-method
 	created_at: int
 	updated_at: int
 
-	class Config: # pylint: disable=too-few-public-methods
-		"""Agent Settings Template"""
-		json_schema_extra = {
+	__config__ = {
+		"json_schema_extra": {
 			"example": CHAT_SETTING_DOCUMENT
 		}
+	}
 
 class ChatSettingIndex(ChatSettingDocument): # pylint: disable=too-few-public-methods
 	"""Chat Settings Template"""
 	"""A message to send to the chatbot."""
 	settings: list[ChatSettings]
 
-	class Config: # pylint: disable=too-few-public-methods
-		"""Agent Settings Template"""
-		json_schema_extra = {
+	__config__ = {
+		"json_schema_extra": {
 			"example": {
 				"settings": [CHAT_SETTING_DOCUMENT]
 			}
 		}
+	}

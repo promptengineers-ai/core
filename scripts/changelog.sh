@@ -10,7 +10,7 @@ branch=$(git rev-parse --abbrev-ref HEAD)
 date=$(date +%Y-%m-%d)
 
 # Find the first occurrence of ### Added
-line_number=$(grep -n "### Added" Changelog.md | head -1 | cut -d: -f1)
+line_number=$(grep -n "### Changed" Changelog.md | head -1 | cut -d: -f1)
 
 # Check if the branch has already been added to the Changelog
 if grep -q " $branch " Changelog.md; then

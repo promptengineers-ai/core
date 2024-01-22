@@ -14,20 +14,20 @@ STRIPE_API_DOC_PROMPT = {
 class ResponsePromptSystemList(PromptSystem): # pylint: disable=too-few-public-methods
 	prompts: List[PromptSystem] = []
 
-	class Config: # pylint: disable=too-few-public-methods
-		"""Prompt System Template"""
-		json_schema_extra = {
+	__config__ = {
+		"json_schema_extra": {
 			"example": {
 				"prompts": [STRIPE_API_DOC_PROMPT]
 			}
 		}
+	}
 
 class ResponsePromptSystem(PromptSystem): # pylint: disable=too-few-public-methods
 
-	class Config: # pylint: disable=too-few-public-methods
-		"""Prompt System Template"""
-		json_schema_extra = {
+	__config__ = {
+		"json_schema_extra": {
 			"example": {
 				"prompt": STRIPE_API_DOC_PROMPT
 			}
 		}
+	}

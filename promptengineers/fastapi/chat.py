@@ -4,16 +4,18 @@ import traceback
 from fastapi import APIRouter, Depends, Request, Response, HTTPException
 from fastapi.responses import StreamingResponse
 
+from promptengineers.chat import (langchain_http_agent_chat, langchain_stream_agent_chat,
+									langchain_http_retrieval_chat, langchain_stream_retrieval_chat)
 from promptengineers.fastapi.controllers import ChatController
 from promptengineers.core.exceptions import ValidationException
-from promptengineers.retrieval.factories import RetreivalFactory, EmbeddingFactory
+from promptengineers.retrieval.factories import RetrievalFactory, EmbeddingFactory
 from promptengineers.models.request import ReqBodyChat, ReqBodyAgentChat, ReqBodyVectorstoreChat
 from promptengineers.models.response import (ResponseChat, ResponseAgentChat, ResponseVectorstoreChat,
 									RESPONSE_STREAM_AGENT_CHAT, RESPONSE_STREAM_VECTORSTORE_CHAT,
 									RESPONSE_STREAM_CHAT)
 from promptengineers.retrieval.strategies import VectorstoreContext
 from promptengineers.core.utils import logger
-from promptengineers.llms.utils import gather_tools
+from promptengineers.llms.utils import gather_tools, retrieve_system_message
 from promptengineers.tools.utils import format_agent_actions
 from promptengineers.core.exceptions import NotFoundException
 
@@ -64,7 +66,7 @@ async def chat(
 		# You can use the stream variable in your function as needed
 		if not body.stream:
 			# Format Response
-			result, cb = chat_controller.langchain_http_chat(
+			result, cb = await chat_controller.langchain_http_chat(
 				messages=body.messages,
 				model=body.model,
 				temperature=body.temperature
@@ -100,7 +102,7 @@ async def chat(
 		)
 	except Exception as err:
 		tb = traceback.format_exc()
-		logger.error("[routes.files.list_files] Exception: %s\n%s", err, tb)
+		logger.error("[routes.chat.chat] Exception: %s\n%s", err, tb)
 		raise HTTPException(status_code=500, detail="Internal Server Error") from err
 
 
@@ -129,24 +131,41 @@ async def agent(
 ):
 	"""Chat endpoint."""
 	try:
+		tokens = await chat_controller.user_repo.find_token(
+			chat_controller.user_id, 
+			['OPENAI_API_KEY', 'PINECONE_API_KEY', 'PINECONE_ENV', 'PINECONE_INDEX', 'REDIS_URL']
+		)
+
 		vectorstore = None
 		if body.retrieval.provider and body.retrieval.index_name:
 
-			# Retrieve User Tokens
-			token = chat_controller.user_repo.find_token(chat_controller.user_id, 'OPENAI_API_KEY')
-
 			# Generate Embeddings
-			embeddings = EmbeddingFactory(body.model, token)
+			embedding = EmbeddingFactory(body.model, tokens.get('OPENAI_API_KEY'))
 
-			# Retreve Vectorstore
-			vectorstore_strategy = RetreivalFactory(
+			if body.retrieval.provider == 'redis':
+				provider_keys={
+					'redis_url': tokens.get('REDIS_URL'),
+					'index_name': f"{chat_controller.request.state.user_id}::{body.retrieval.index_name}",
+				}
+			elif body.retrieval.provider == 'pinecone':
+				provider_keys = {
+					'api_key': tokens.get('PINECONE_API_KEY'),
+					'env': tokens.get('PINECONE_ENV'),
+					'index_name': tokens.get('PINECONE_INDEX'),
+					'namespace': f"{chat_controller.request.state.user_id}::{body.retrieval.index_name}",
+				}
+			else:
+				raise HTTPException(
+					status_code=400,
+					detail=f"Invalid retrieval provider: {body.retrieval.provider}"
+				)
+
+			retrieval_provider = RetrievalFactory(
 				provider=body.retrieval.provider,
-				index_name=f"{chat_controller.user_id}::{body.retrieval.index_name}",
-				embeddings=embeddings(),
-				user_id=chat_controller.user_id,
-				user_repo=chat_controller.user_repo,
+				embeddings=embedding.create_embedding(),
+				provider_keys=provider_keys
 			)
-			vectostore_service = VectorstoreContext(vectorstore_strategy)
+			vectostore_service = VectorstoreContext(retrieval_provider.create_strategy())
 			vectorstore = vectostore_service.load()
 		
 		tools = gather_tools(
@@ -161,14 +180,21 @@ async def agent(
 				detail="No tools selected"
 			)
 
+		# Retrieve the system message
+		system_message = retrieve_system_message(body.messages)
+		# Attach the application user id to the system message
+		system_message = system_message + '\n' + "USER_ID=" + str(chat_controller.user_id)
+		body.messages[0]['content'] = system_message
+
 		# You can use the stream variable in your function as needed
 		if not body.stream:
 			# Format Response
-			result, cb = await chat_controller.langchain_http_agent_chat(
+			result, cb = await langchain_http_agent_chat(
 				messages=body.messages,
 				model=body.model,
+				tools=tools,
 				temperature=body.temperature,
-				tools=tools
+				openai_api_key=tokens.get('OPENAI_API_KEY'),
 			)
 			data = ujson.dumps({
 				'message': result['output'],
@@ -189,11 +215,12 @@ async def agent(
 			)
 
 		return StreamingResponse(
-			chat_controller.langchain_stream_agent_chat(
+			langchain_stream_agent_chat(
 				messages=body.messages,
 				model=body.model,
 				temperature=body.temperature,
-				tools=tools
+				tools=tools,
+				openai_api_key=tokens.get('OPENAI_API_KEY'),
 			),
 			headers={
 				"Cache-Control": "no-cache",
@@ -225,7 +252,6 @@ async def agent(
 	},
 )
 async def vector_search(
-	request: Request,
 	body: ReqBodyVectorstoreChat,
 	chat_controller: ChatController = Depends(get_controller),
 ):
@@ -235,23 +261,38 @@ async def vector_search(
 		logger.debug('[POST /chat/vectorstore] Query: %s', str(body))
 
 		# Retrieve User Tokens
-		user_id = getattr(request.state, "user_id", None)
-
-		# Retrieve User Tokens
-		token = chat_controller.user_repo.find_token(user_id, 'OPENAI_API_KEY')
+		tokens = await chat_controller.user_repo.find_token(
+			chat_controller.user_id, 
+			['OPENAI_API_KEY', 'PINECONE_API_KEY', 'PINECONE_ENV', 'PINECONE_INDEX', 'REDIS_URL']
+		)
 
 		# Generate Embeddings
-		embeddings = EmbeddingFactory(body.model, token)
+		embedding = EmbeddingFactory(body.model, tokens.get('OPENAI_API_KEY'))
 
-		# Retreve Vectorstore
-		vectorstore_strategy = RetreivalFactory(
+		if body.provider == 'redis':
+			provider_keys={
+				'redis_url': tokens.get('REDIS_URL'),
+				'index_name': f"{chat_controller.request.state.user_id}::{body.vectorstore}",
+			}
+		elif body.provider == 'pinecone':
+			provider_keys = {
+				'api_key': tokens.get('PINECONE_API_KEY'),
+				'env': tokens.get('PINECONE_ENV'),
+				'index_name': tokens.get('PINECONE_INDEX'),
+				'namespace': f"{chat_controller.request.state.user_id}::{body.vectorstore}",
+			}
+		else:
+			raise HTTPException(
+				status_code=400,
+				detail=f"Invalid retrieval provider: {body.provider}"
+			)
+
+		retrieval_provider = RetrievalFactory(
 			provider=body.provider,
-			index_name=f"{chat_controller.user_id}::{body.vectorstore}",
-			embeddings=embeddings(),
-			user_id=chat_controller.user_id,
-			user_repo=chat_controller.user_repo,
+			embeddings=embedding.create_embedding(),
+			provider_keys=provider_keys
 		)
-		vectostore_service = VectorstoreContext(vectorstore_strategy())
+		vectostore_service = VectorstoreContext(retrieval_provider.create_strategy())
 		vectorstore = vectostore_service.load()
 
 		# Check if the retrieved file is empty
@@ -264,11 +305,12 @@ async def vector_search(
 		# You can use the stream variable in your function as needed
 		if not body.stream:
 			# Format Response
-			result, cb = chat_controller.langchain_http_vectorstore_chat(
+			result, cb = await langchain_http_retrieval_chat(
 				messages=body.messages,
 				model=body.model,
 				temperature=body.temperature,
 				vectorstore=vectorstore,
+				openai_api_key=tokens.get('OPENAI_API_KEY'),
 			)
 			formatted_docs = []
 			for doc in result['source_documents']:
@@ -296,11 +338,12 @@ async def vector_search(
 
 		# Process Query
 		return StreamingResponse(
-			chat_controller.langchain_stream_vectorstore_chat(
+			langchain_stream_retrieval_chat(
 				messages=body.messages,
 				model=body.model,
 				temperature=body.temperature,
 				vectorstore=vectorstore,
+				openai_api_key=tokens.get('OPENAI_API_KEY'),
 			),
 			media_type="text/event-stream"
 		)

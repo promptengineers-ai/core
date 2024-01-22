@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.0.3
+### Changed
+  - Release (2024-01-21)
+
+## 0.0.3-rc.2
+### Changed
+  - feature/87-cleans-up-document-loading-functionality (2024-01-20)
+
+## 0.0.3-rc.1
+### Changed
+  - feature/85-detach-chat-from-controllers-and-user-repo (2024-01-18)
+
 ## 0.0.2
 ### Changed
   - Not enough considerations were being made for multi-app support. In light would like to go back to

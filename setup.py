@@ -12,7 +12,8 @@ setup(
     ],
     extras_require={
         'llms':[
-            'langchain', 
+            'langchain==0.0.354',
+            'langchain-openai', 
             'openai', 
         ],
         'mongo': [
@@ -28,15 +29,17 @@ setup(
             'python-multipart',
         ],
         'retrieval': [
+            'jq',
             'promptengineers[llms]',
             'redis', 
-            'pinecone-client', 
+            'pinecone-client==2.2.4', 
             'youtube-transcript-api', 
             'pypdf', 
             'numexpr', 
             'tiktoken', 
             'nest_asyncio', 
             'beautifulsoup4',
+            # 'unstructured[all-docs]'
         ],
         'tools': [
             'promptengineers[llms]',

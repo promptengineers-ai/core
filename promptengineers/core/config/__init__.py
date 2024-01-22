@@ -14,7 +14,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", '')
 OLLAMA_BASE_URL= os.getenv("OLLAMA_BASE_URL", 'http://localhost:11434')
 
 # Mongo
-DB_NAME= os.getenv('DB_NAME', 'precisionx-dev')
+DB_NAME= os.getenv('DB_NAME', 'promptengineers')
 DB_COLLECTION = os.getenv('DB_COLLECTION', 'history')
 MONGO_CONNECTION = os.getenv("MONGO_CONNECTION", f'mongodb://localhost:27017')
 MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", f'llm-server')

@@ -8,9 +8,8 @@ class PromptSystem(BaseModel): # pylint: disable=too-few-public-methods
 	system: str
 	variables: Optional[dict] = None
 
-	class Config: # pylint: disable=too-few-public-methods
-		"""Prompt System Template"""
-		json_schema_extra = {
+	__config__ = {
+		"json_schema_extra": {
 			"example": {
 				"title": "Helpful Assistant Prompt",
 				"system": "You are a helpful {ASSISTANT_TYPE} assistant. You have have been given context to {INDEX_NAME} to answer user questions.",
@@ -20,3 +19,4 @@ class PromptSystem(BaseModel): # pylint: disable=too-few-public-methods
                 }
 			}
 		}
+	}

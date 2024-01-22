@@ -1,46 +1,77 @@
+from typing import Dict
 
-from promptengineers.core.interfaces.repos import IUserRepo
-from promptengineers.core.validations import Validator
-from promptengineers.repos.user import UserRepo
-from promptengineers.retrieval.strategies import PineconeStrategy, RedisStrategy
+from promptengineers.retrieval.strategies import PineconeStrategy, RedisStrategy, VectorStoreStrategy
 
-class RetreivalFactory:
-	def __init__(
-			self,
-			provider: ('redis', 'pinecone'), 
-			index_name: str,
-			embeddings,
-			user_id: str,
-			user_repo: IUserRepo = UserRepo()
-	):
-		self.provider = provider
-		self.index_name = index_name
-		self.embeddings = embeddings
-		self.user_id = user_id
-		self.user_repo = user_repo
-		self.validator = Validator()
+class RetrievalFactory:
+    def __init__(
+        self,
+        provider: str,
+        embeddings,
+        provider_keys: Dict[str, str]
+    ):
+        """
+        A factory for creating vector store strategies based on the given provider.
 
-	def __call__(self) -> PineconeStrategy | RedisStrategy:
-		if self.provider in 'pinecone':
-			required_keys = ['PINECONE_API_KEY', 'PINECONE_ENV', 'PINECONE_INDEX']
-			tokens = self.user_repo.find_token(self.user_id, required_keys)
-			self.validator.validate_api_keys(tokens, required_keys)
-			vectorstore_strategy = PineconeStrategy(
-				embeddings=self.embeddings,
-				api_key=tokens.get(required_keys[0]),
-				env=tokens.get(required_keys[1]),
-				index_name=tokens.get(required_keys[2]),
-				namespace=self.index_name,
-			)
-		elif self.provider in 'redis':
-			required_keys = ['REDIS_URL']
-			tokens = self.user_repo.find_token(self.user_id, required_keys)
-			self.validator.validate_api_keys(tokens, required_keys)
-			vectorstore_strategy = RedisStrategy(
-				redis_url=tokens.get(required_keys[0]),
-				index_name=self.index_name,
-				embeddings=self.embeddings,
-			)
-		else:
-			raise ValueError(f"Invalid index provider {self.provider}")
-		return vectorstore_strategy
+        :param provider: The name of the provider ('pinecone' or 'redis').
+        :param embeddings: The embeddings to be used in the strategy.
+        :param provider_keys: A dictionary containing the keys for the provider configuration.
+        """
+        self.provider = provider
+        self.embeddings = embeddings
+        self.provider_keys = provider_keys
+        self._validate_provider_keys()
+
+    def create_strategy(self) -> VectorStoreStrategy:
+        """
+        Creates and returns the appropriate strategy object based on the provider.
+
+        :return: An instance of PineconeStrategy or RedisStrategy.
+        :raises ValueError: If the provider is not supported.
+        """
+        if self.provider == 'pinecone':
+            return self._create_pinecone_strategy()
+        elif self.provider == 'redis':
+            return self._create_redis_strategy()
+        else:
+            raise ValueError(f"Invalid index provider: {self.provider}")
+
+    def _create_pinecone_strategy(self) -> PineconeStrategy:
+        """ Creates a PineconeStrategy with the appropriate configuration. """
+        return PineconeStrategy(
+            embeddings=self.embeddings,
+            api_key=self.provider_keys['api_key'],
+            env=self.provider_keys['env'],
+            index_name=self.provider_keys['index_name'],
+            namespace=self.provider_keys['namespace'],
+        )
+
+    def _create_redis_strategy(self) -> RedisStrategy:
+        """ Creates a RedisStrategy with the appropriate configuration. """
+        return RedisStrategy(
+            redis_url=self.provider_keys['redis_url'],
+            index_name=self.provider_keys['index_name'],
+            embeddings=self.embeddings,
+        )
+
+    def _validate_provider_keys(self):
+        """
+        Validates that all required keys are present for the configured provider.
+        :raises KeyError: If any required key is missing.
+        """
+        required_keys = {
+            'pinecone': ['api_key', 'env', 'index_name', 'namespace'],
+            'redis': ['redis_url', 'index_name']
+        }
+
+        if self.provider not in required_keys:
+            raise ValueError(f"Unsupported provider: {self.provider}")
+
+        missing_keys = [
+            key for key in required_keys[self.provider] 
+            if key not in self.provider_keys
+        ]
+
+        if missing_keys:
+            raise KeyError(
+                f"Missing keys for provider '{self.provider}': {', '.join(missing_keys)}"
+            )

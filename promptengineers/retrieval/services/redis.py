@@ -3,7 +3,7 @@ import os
 
 from redis import Redis as RedisClient
 from langchain.vectorstores.redis import Redis
-from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 
 from promptengineers.retrieval.utils import split_docs
 

@@ -1,9 +1,9 @@
 from .embedding import EmbeddingFactory
-from .provider import RetreivalFactory
+from .provider import RetrievalFactory
 from .loader import LoaderFactory
 
 __all__ = [
     "EmbeddingFactory",
-    "RetreivalFactory",
+    "RetrievalFactory",
     "LoaderFactory",
 ]

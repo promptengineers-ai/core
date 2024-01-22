@@ -13,10 +13,8 @@ class ResponseStatus(BaseModel):
 class ResponseChat(BaseModel):
     """A message to send to the chatbot."""
 
-    class Config:  # pylint: disable=too-few-public-methods
-        """A message to send to the chatbot."""
-
-        json_schema_extra = {
+    __config__ = {
+		"json_schema_extra": {
             "example": {
 				"message": "The pitchers for the Arizona Diamondbacks in the 2001 World Series were Randy Johnson, Curt Schilling, Miguel Batista, and Brian Anderson.",
 				"usage": {
@@ -28,14 +26,15 @@ class ResponseChat(BaseModel):
 				}
 			}
         }
+    }
 
 
 #################################################
 ## Chat Agent HTTP Response
 #################################################
 class ResponseAgentChat(BaseModel):
-    class Config:
-        json_schema_extra = {
+    __config__ = {
+		"json_schema_extra": {
             "example": {
                 "message": "$2000 compounded at 5 percent for 10 years will be approximately $3257.79.",
                 "usage": {
@@ -47,14 +46,15 @@ class ResponseAgentChat(BaseModel):
                 },
             }
         }
+    }
 
 
 #################################################
 ## Chat Agent Plugins HTTP Response
 #################################################
 class ResponseAgentPluginsChat(BaseModel):
-    class Config:
-        json_schema_extra = {
+    __config__ = {
+		"json_schema_extra": {
             "example": {
                 "message": 'To politely greet shop employees when entering in French, you can say "Bonjour" which means "Hello" or "Good day" in English. It is a common and polite way to greet people in France.',
                 "usage": {
@@ -66,14 +66,15 @@ class ResponseAgentPluginsChat(BaseModel):
                 },
             }
         }
+    }
 
 
 #################################################
 ## Chat Vectorstore HTTP Response
 #################################################
 class ResponseVectorstoreChat(BaseModel):
-    class Config:
-        json_schema_extra = {
+    __config__ = {
+		"json_schema_extra": {
             "example": {
                 "message": "The context is about projects and their components. The components include forms, resources, submissions, actions, logs, access, revisions, settings, roles, stages, integrations, authentication, and stage versions and deployments. The main purpose of the context is to provide a sandbox for projects to manage and control various aspects of their operations. Additionally, users can introduce their own evaluation context variables to customize the evaluations within the projects.",
                 "usage": {
@@ -85,14 +86,15 @@ class ResponseVectorstoreChat(BaseModel):
                 },
             }
         }
+    }
 
 
 #################################################
 ## Create Vectorstore HTTP Response
 #################################################
 class ResponseCreateVectorStore(BaseModel):
-    class Config:
-        json_schema_extra = {
+    __config__ = {
+		"json_schema_extra": {
             "example": {
                 "message": "Vectorstore Created!",
                 "data": {
@@ -104,13 +106,15 @@ class ResponseCreateVectorStore(BaseModel):
                 },
             }
         }
+    }
 
 
 #################################################
 ## List Vectorstores HTTP Response
 #################################################
 class ResponseListPineconeVectorStores(BaseModel):
-    class Config:
-        json_schema_extra = {
+    __config__ = {
+		"json_schema_extra": {
             "example": {"vectorstores": ["pinecone-docs-guide-and-api", "formio"]}
         }
+    }
