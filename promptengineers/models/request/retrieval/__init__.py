@@ -9,8 +9,8 @@ class RequestMultiLoader(BaseModel):
     files: List[str] or None = Field(...)
     loaders: List[dict] or None = Field(...)
 
-    class Config:
-        json_schema_extra = {
+    __config__ = {
+		"json_schema_extra": {
             "example": {
                 "provider": "pinecone",
                 "embedding": "text-embedding-ada-002",
@@ -24,6 +24,7 @@ class RequestMultiLoader(BaseModel):
                 ],
             }
         }
+    }
 
 
 class RequestDataLoader(BaseModel):
@@ -32,8 +33,8 @@ class RequestDataLoader(BaseModel):
     embedding: str = ("text-embedding-ada-002", "llama2:7b", "llama2")
     loaders: List[dict] or None = Field(...)
 
-    class Config:
-        json_schema_extra = {
+    __config__ = {
+		"json_schema_extra": {
             "example": {
                 "provider": "pinecone",
                 "embedding": "text-embedding-ada-002",
@@ -45,3 +46,4 @@ class RequestDataLoader(BaseModel):
                 ],
             }
         }
+    }

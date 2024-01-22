@@ -16,10 +16,8 @@ class ReqBodyChat(BaseModel):  # pylint: disable=too-few-public-methods
     temperature: Optional[float or int] = None
     stream: Optional[bool] = None
 
-    class Config:  # pylint: disable=too-few-public-methods
-        """A message to send to the chatbot."""
-
-        json_schema_extra = {
+    __config__ = {
+		"json_schema_extra": {
             "example": {
                 "model": "gpt-3.5-turbo",
                 "temperature": 0.8,
@@ -35,6 +33,7 @@ class ReqBodyChat(BaseModel):  # pylint: disable=too-few-public-methods
                 ],
             }
         }
+    }
 
 class ReqBodyAgentChat(ReqBodyChat):  # pylint: disable=too-few-public-methods
     """A message to send to the chatbot."""
@@ -43,10 +42,8 @@ class ReqBodyAgentChat(ReqBodyChat):  # pylint: disable=too-few-public-methods
     plugins: list[str] = None
     retrieval: Retrieval = None
 
-    class Config:  # pylint: disable=too-few-public-methods
-        """A message to send to the chatbot."""
-
-        json_schema_extra = {
+    __config__ = {
+		"json_schema_extra": {
             "example": {
                 "model": "gpt-3.5-turbo",
                 "temperature": 0.8,
@@ -66,6 +63,7 @@ class ReqBodyAgentChat(ReqBodyChat):  # pylint: disable=too-few-public-methods
                 }
             }
         }
+    }
 
 
 class ReqBodyAgentPluginsChat(ReqBodyChat):  # pylint: disable=too-few-public-methods
@@ -73,10 +71,8 @@ class ReqBodyAgentPluginsChat(ReqBodyChat):  # pylint: disable=too-few-public-me
 
     plugins: list[str] = None
 
-    class Config:  # pylint: disable=too-few-public-methods
-        """A message to send to the chatbot."""
-
-        json_schema_extra = {
+    __config__ = {
+		"json_schema_extra": {
             "example": {
                 "model": "gpt-3.5-turbo-16k",
                 "temperature": 0.8,
@@ -91,6 +87,7 @@ class ReqBodyAgentPluginsChat(ReqBodyChat):  # pylint: disable=too-few-public-me
                 "plugins": ["https://api.speak.com/.well-known/ai-plugin.json"],
             }
         }
+    }
 
 class ReqBodyVectorstoreChat(ReqBodyChat):  # pylint: disable=too-few-public-methods
     """A message to send to the chatbot."""
@@ -98,10 +95,8 @@ class ReqBodyVectorstoreChat(ReqBodyChat):  # pylint: disable=too-few-public-met
     vectorstore: Optional[str] = None
     provider: Optional[str] = None
 
-    class Config:  # pylint: disable=too-few-public-methods
-        """A message to send to the chatbot."""
-
-        json_schema_extra = {
+    __config__ = {
+		"json_schema_extra": {
             "example": {
                 "provider": "pinecone",
                 "vectorstore": "Formio",
@@ -114,6 +109,7 @@ class ReqBodyVectorstoreChat(ReqBodyChat):  # pylint: disable=too-few-public-met
                 ],
             }
         }
+    }
 
 
 class ReqBodyFunctionChat(ReqBodyChat):  # pylint: disable=too-few-public-methods
@@ -121,10 +117,8 @@ class ReqBodyFunctionChat(ReqBodyChat):  # pylint: disable=too-few-public-method
 
     functions: list[str] = []
 
-    class Config:  # pylint: disable=too-few-public-methods
-        """A message to send to the chatbot."""
-
-        json_schema_extra = {
+    __config__ = {
+		"json_schema_extra": {
             "example": {
                 "model": "gpt-3.5-turbo",
                 "temperature": 0.8,
@@ -135,3 +129,4 @@ class ReqBodyFunctionChat(ReqBodyChat):  # pylint: disable=too-few-public-method
                 "functions": ["get_word_length"],
             }
         }
+    }

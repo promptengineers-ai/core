@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from langchain.llms import Ollama
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 
 # Define the strategy interface
 class LLMStrategy(ABC):

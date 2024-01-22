@@ -4,23 +4,26 @@ from langchain.chains import LLMMathChain
 from langchain.agents import Tool, tool
 from langchain.callbacks.streaming_stdout_final_only import FinalStreamingStdOutCallbackHandler
 
+from promptengineers.core.config.llm import OpenAIModels
 from promptengineers.core.config import OPENAI_API_KEY
 from promptengineers.llms.strategies import ModelContext, OpenAIStrategy
 
 model_service = ModelContext(strategy=OpenAIStrategy(api_key=OPENAI_API_KEY))
 llm = model_service.chat(
-    model_name='gpt-3.5-turbo-16k',
+    model_name=OpenAIModels.GPT_3_5_TURBO_16K.value,
     temperature=0.0,
     callbacks=[FinalStreamingStdOutCallbackHandler()]
 )
-llm_math = LLMMathChain(llm=llm)
-
+llm_math = LLMMathChain.from_llm(llm=llm)
 math_tool = Tool(
     name='Calculator',
     func=llm_math.run,
     description='Useful for when you need to answer questions about math.'
 )
 
+#####################################################################################
+## Custom Tools
+#####################################################################################
 @tool
 def get_word_length(word: str) -> int:
     """Returns the length of a word."""

@@ -1,7 +1,7 @@
 
 from typing import Any
 from promptengineers.core.config.llm import ACCEPTED_OLLAMA_MODELS, ACCEPTED_OPENAI_MODELS
-from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain.embeddings import OllamaEmbeddings
 
 class EmbeddingFactory:

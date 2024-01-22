@@ -21,13 +21,14 @@ from .settings import ResponseSetting, ResponseSettingsList
 from .history import ResponseHistoryIndex, ResponseHistoryShow
 
 class ResponseFileLoader(BaseModel):
-    class Config:
-        json_schema_extra = {
+    __config__ = {
+		"json_schema_extra": {
             "example": {
                 "message": "Vectorstore Created!",
                 "vectorstore": "index_name",
             }
         }
+    }
 
 
 class ResponseChatStream(BaseModel):
@@ -41,15 +42,13 @@ class ResponseChatStream(BaseModel):
 class ResponseRetrieveVectorstores(BaseModel):
     """A message to send to the chatbot."""
 
-    class Config:
-        """A message to send to the chatbot."""
-
-        json_schema_extra = {"example": {"vectorstores": ["formio.pkl", "bullmq.pkl"]}}
+    __config__ = {
+		"json_schema_extra": {"example": {"vectorstores": ["formio.pkl", "bullmq.pkl"]}}}
 
 
 class ResponseRetrieveFiles(BaseModel):
-    class Config:
-        json_schema_extra = {
+    __config__ = {
+		"json_schema_extra": {
             "example": {
                 "files": [
                     "A Prompt Pattern Catalog to Enhance Prompt Engineering with ChatGPT.pdf",
@@ -57,11 +56,12 @@ class ResponseRetrieveFiles(BaseModel):
                 ]
             }
         }
+    }
 
 
 class ResponseFileStorage(BaseModel):
-    class Config:
-        json_schema_extra = {
+    __config__ = {
+		"json_schema_extra": {
             "example": {
                 "message": "File(s) Uploaded!",
                 "bucket_name": "prompt-engineers-dev",
@@ -71,26 +71,29 @@ class ResponseFileStorage(BaseModel):
                 ],
             }
         }
+    }
 
 class ResponseCreate(BaseModel):
     _id: str
 
-    class Config:
-        json_schema_extra = {
+    __config__ = {
+		"json_schema_extra": {
             "example": {
                 "_id": "5f7d0f0d5c3a3e2e3a3e2e3a",
             }
         }
+    }
 
 class ResponseUpdate(BaseModel):
     message: str
 
-    class Config:
-        json_schema_extra = {
+    __config__ = {
+		"json_schema_extra": {
             "example": {
                 "message": "Resource [{id}] updated successfully.",
             }
         }
+    }
 
 __all__ = [
     "ResponseStatus",
