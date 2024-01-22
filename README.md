@@ -42,7 +42,7 @@ PINECONE_INDEX = os.environ.get('PINECONE_INDEX')
 
 INDEX_PROVIDER = 'pinecone'
 INDEX_NAME = 'default'
-NAMESPACE = '63f0962f9a09c84c98ab6caf::formio'
+NAMESPACE = '000000000000000000000000::formio'
 EMBEDDING_LLM = 'text-embedding-ada-002'
 LOADERS = [
 	{
@@ -120,7 +120,7 @@ PINECONE_INDEX = os.environ.get('PINECONE_INDEX')
 # Retrieval Constants
 INDEX_PROVIDER = 'pinecone'
 INDEX_NAME = 'default'
-NAMESPACE = '63f0962f9a09c84c98ab6caf::formio'
+NAMESPACE = '000000000000000000000000::formio'
 EMBEDDING_LLM = 'text-embedding-ada-002'
 
 # Chat Constants
@@ -192,7 +192,7 @@ PINECONE_INDEX = os.environ.get('PINECONE_INDEX')
 # Retrieval Constants
 INDEX_PROVIDER = 'pinecone'
 INDEX_NAME = 'default'
-NAMESPACE = '63f0962f9a09c84c98ab6caf::formio'
+NAMESPACE = '000000000000000000000000::formio'
 EMBEDDING_LLM = 'text-embedding-ada-002'
 
 # Chat Constants
@@ -266,7 +266,7 @@ PINECONE_INDEX = os.environ.get('PINECONE_INDEX')
 # Retrieval Constants
 INDEX_PROVIDER = 'pinecone'
 INDEX_NAME = 'default'
-NAMESPACE = '63f0962f9a09c84c98ab6caf::formio'
+NAMESPACE = '000000000000000000000000::formio'
 EMBEDDING_LLM = 'text-embedding-ada-002'
 
 # Chat Constants
@@ -349,7 +349,7 @@ PINECONE_INDEX = os.environ.get('PINECONE_INDEX')
 # Retrieval Constants
 INDEX_PROVIDER = 'pinecone'
 INDEX_NAME = 'default'
-NAMESPACE = '63f0962f9a09c84c98ab6caf::formio'
+NAMESPACE = '000000000000000000000000::formio'
 EMBEDDING_LLM = 'text-embedding-ada-002'
 
 # Chat Constants
