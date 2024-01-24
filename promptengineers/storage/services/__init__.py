@@ -9,6 +9,13 @@ from promptengineers.core.utils import logger
 
 class StorageService:
 	"""Storage Service Class for MinIO"""
+	_instance = None
+
+	def __new__(cls, *args, **kwargs):
+		if not cls._instance:
+			cls._instance = super(StorageService, cls).__new__(cls)
+		return cls._instance
+
 	def __init__(self, access_key_id, secret_access_key, minio_server: str = None):
 		self.minio_server = minio_server if minio_server else (MINIO_SERVER or f"s3.{S3_REGION}.amazonaws.com")
 		self.access_key_id = access_key_id

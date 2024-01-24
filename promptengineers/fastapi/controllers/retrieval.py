@@ -45,7 +45,7 @@ def process_file(
 
 		with open(file_path, 'wb') as f:
 			f.write(file.file.read())  # write the file to the temporary directory
-		doc_loader = LoaderFactory.create_loader(file_extension_cleaned, {'file_path': file_path})
+		doc_loader = LoaderFactory.create(file_extension_cleaned, {'file_path': file_path})
 
 		pinecone_service.from_documents([doc_loader], embeddings, namespace=index_name)
 	except HTTPException:
@@ -109,7 +109,7 @@ def accumulate_loaders(loaders, files=None, tmpdirname=None):
 				loader_data = {'urls': loader.urls}
 
 
-		doc_loader = LoaderFactory.create_loader(loader_type,  loader_data)
+		doc_loader = LoaderFactory.create(loader_type,  loader_data)
 		accumulate_loaders.append(doc_loader)
 
 	if tmpdirname:
@@ -120,7 +120,7 @@ def accumulate_loaders(loaders, files=None, tmpdirname=None):
 					file.write(file_body.read())  # write the file to the temporary directory
 				filename = file_path.split('/')[-1]
 				loader = os.path.splitext(filename)[1][1:]
-				doc_loader = LoaderFactory.create_loader(
+				doc_loader = LoaderFactory.create(
 					loader,
 					{'file_path': file_path}
 				)
@@ -301,7 +301,7 @@ class VectorSearchController:
 					while not file_queue.empty():
 						file = file_queue.get()
 						try:
-							process_file(index_name, tmpdirname, file, embeddings(), pinecone_service)
+							process_file(index_name, tmpdirname, file, embeddings.create_embedding(), pinecone_service)
 						finally:
 							file_queue.task_done()
 
@@ -313,7 +313,7 @@ class VectorSearchController:
 				file_queue.join()  # Wait for all files to be processed
 			else:
 				for file in files:
-					process_file(index_name, tmpdirname, file, embeddings(), pinecone_service)
+					process_file(index_name, tmpdirname, file, embeddings.create_embedding(), pinecone_service)
 
 
 	##############################################################
