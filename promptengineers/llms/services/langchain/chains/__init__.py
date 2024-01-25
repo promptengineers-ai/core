@@ -21,6 +21,9 @@ from promptengineers.core.config import APP_ENV
 from promptengineers.prompts.templates import get_system_template, get_retrieval_template
 
 
+def _handle_error(error) -> str:
+    return str(error)[:500]
+
 class ChainService:
 	"""Chain Service"""
 	def __init__(self, model):
@@ -100,7 +103,8 @@ class ChainService:
 		verbose=True if APP_ENV == 'local' or APP_ENV == 'development' else False,
 		return_messages = True,
 		callbacks = [],
-		return_intermediate_steps = True
+		return_intermediate_steps = True,
+		handle_parsing_errors = True
 	):
 		system_message = SystemMessage(content=content)
 		prompt = OpenAIFunctionsAgent.create_prompt(
@@ -124,7 +128,8 @@ class ChainService:
 			memory=memory,
 			verbose=verbose,
 			callbacks=callbacks,
-			return_intermediate_steps=return_intermediate_steps
+			return_intermediate_steps=return_intermediate_steps,
+			handle_parsing_errors=handle_parsing_errors
 		)
 
 	def agent_with_tools(
