@@ -15,7 +15,7 @@ class RequestMultiLoader(BaseModel):
 		"json_schema_extra": {
             "example": {
                 "provider": "pinecone",
-                "embedding": OpenAIModels.TEXT_EMBED_3_SMALL.value
+                "embedding": OpenAIModels.TEXT_EMBED_3_SMALL.value,
                 "index_name": "formio-docs-and-website",
                 "files": [
                     "formio-customer-issue.pdf",
