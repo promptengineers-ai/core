@@ -8,9 +8,11 @@ class OpenAIModels(Enum):
     GPT_4_MARCH = 'gpt-4-0314'
     GPT_4_32K = 'gpt-4-32k'
     GPT_4_32K_MARCH = 'gpt-4-32k-0314'
-    GPT_4_TURBO = 'gpt-4-1106-preview'
+    GPT_4_TURBO = 'gpt-4-0125-preview'
     GPT_4_VISION = 'gpt-4-vision-preview'
     EMBED_ADA = 'text-embedding-ada-002'
+    TEXT_EMBED_3_SMALL = 'text-embedding-3-small'
+    TEXT_EMBED_3_LARGE = 'text-embedding-3-large'
 
 class OllamaModels(Enum):
     LLAMA_2 = 'llama2'
@@ -26,7 +28,9 @@ ACCEPTED_OPENAI_MODELS = {
     OpenAIModels.GPT_4_32K.value,
     OpenAIModels.GPT_4_TURBO.value,
     OpenAIModels.GPT_4_VISION.value,
-    OpenAIModels.EMBED_ADA.value
+    OpenAIModels.EMBED_ADA.value,
+    OpenAIModels.TEXT_EMBED_3_SMALL.value,
+    OpenAIModels.TEXT_EMBED_3_LARGE.value
 }
 
 ACCEPTED_OLLAMA_MODELS = {
