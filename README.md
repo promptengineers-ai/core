@@ -353,7 +353,7 @@ NAMESPACE = '000000000000000000000000::formio'
 EMBEDDING_LLM = 'text-embedding-ada-002'
 
 # Chat Constants
-CHAT_LLM = 'gpt-4-1106-preview'
+CHAT_LLM = 'gpt-4-0125-preview'
 TEMPERATURE = 0.1
 MESSAGES = [
     {
