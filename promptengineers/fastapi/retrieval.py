@@ -5,6 +5,7 @@ import ujson
 from fastapi import (APIRouter, Depends, Request, Form, status,
                     Response, UploadFile, File, HTTPException)
 
+from promptengineers.core.config.llm import OpenAIModels, OllamaModels
 from promptengineers.core.exceptions import ValidationException
 from promptengineers.core.interfaces.controllers import IController
 from promptengineers.models.request import RequestDataLoader, RequestMultiLoader
@@ -148,7 +149,7 @@ async def create_vectorstore(
 async def create_vectorstore_from_file(
 	index_name: str = Form(...),
 	provider: Literal['pinecone', 'redis'] = Form(...),
-	embedding: Literal['text-embedding-ada-002', 'llama2:7b', 'llama2'] = Form(...),
+	embedding: Literal['text-embedding-3-small', 'llama2:7b', 'llama2'] = Form(...),
 	files: List[UploadFile] = File(...),
 	controller: VectorSearchController = Depends(get_controller),
 ):
@@ -156,7 +157,7 @@ async def create_vectorstore_from_file(
 	try:
 		await controller.create_vectorstore_from_files(
 			provider,
-			index_name,
+			f"{controller.user_id}::{index_name}",
 			embedding,
 			files
 		)
