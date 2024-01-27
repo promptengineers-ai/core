@@ -40,3 +40,11 @@ ACCEPTED_OLLAMA_MODELS = {
     OllamaModels.VICUNA.value,
     OllamaModels.MISTRAL.value
 }
+
+ACCEPTED_EMBEDDING_MODELS = {
+    OpenAIModels.EMBED_ADA.value,
+    OpenAIModels.TEXT_EMBED_3_SMALL.value,
+    OpenAIModels.TEXT_EMBED_3_LARGE.value,
+    OllamaModels.LLAMA_2.value,
+    OllamaModels.LLAMA_2_7B.value,
+}

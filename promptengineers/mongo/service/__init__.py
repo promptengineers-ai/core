@@ -4,12 +4,6 @@ import motor.motor_asyncio
 
 class MongoService:
 	"""Service for interacting with the history collection in MongoDB."""
-	_instance = None
-
-	def __new__(cls, *args, **kwargs):
-		if not cls._instance:
-			cls._instance = super(MongoService, cls).__new__(cls)
-		return cls._instance
 
 	def __init__(self, host: str, db: str, collection: str):
 		client = motor.motor_asyncio.AsyncIOMotorClient(host)
