@@ -36,3 +36,30 @@ PINECONE_INDEX = os.getenv("PINECONE_INDEX", '')
 
 # Blockchain Credentials
 ALCHEMY_API_KEY = os.getenv("ALCHEMY_API_KEY", '')
+
+default_app_tokens = {
+    'OPENAI_API_KEY': OPENAI_API_KEY,
+    'OLLAMA_BASE_URL': OLLAMA_BASE_URL,
+    'MONGO_CONNECTION': MONGO_CONNECTION,
+    'MONGO_DB_NAME': MONGO_DB_NAME,
+    'REDIS_URL': REDIS_URL,
+    'BUCKET': BUCKET,
+    'S3_REGION': S3_REGION,
+    'ACCESS_KEY_ID': ACCESS_KEY_ID,
+    'ACCESS_SECRET_KEY': ACCESS_SECRET_KEY,
+    'MINIO_SERVER': MINIO_SERVER,
+    'PINECONE_API_KEY': PINECONE_API_KEY,
+    'PINECONE_ENV': PINECONE_ENV,
+    'PINECONE_INDEX': PINECONE_INDEX,
+    'ALCHEMY_API_KEY': ALCHEMY_API_KEY,
+}
+
+def retrieve_defaults(keys):
+    """
+    Extracts a sub-dictionary from the given default dictionary based on the specified keys.
+
+    :param default_dict: The original dictionary from which to extract the keys.
+    :param keys: A set or list of keys to extract from the default dictionary.
+    :return: A new dictionary containing only the keys present in the keys argument.
+    """
+    return {k: default_app_tokens[k] for k in keys if k in default_app_tokens}
