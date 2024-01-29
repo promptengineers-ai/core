@@ -262,8 +262,8 @@ class VectorSearchController:
 		index_name: str,
 		embedding: str,
 		files: List[UploadFile] = File(...),
+		tokens: dict = None,
 		threaded: bool = True,
-		default_tokens: dict = None
 	):
 		"""Create a vectorstore from files."""
 		# Validate the file extensions before processing
@@ -277,11 +277,6 @@ class VectorSearchController:
 
 		## Get Tokens
 		if provider == 'pinecone':
-			keys = ['PINECONE_API_KEY', 'PINECONE_ENV', 'PINECONE_INDEX', 'OPENAI_API_KEY']
-			tokens = default_tokens or await self.user_repo.find_token(self.user_id, keys)
-			## Check for token, else throw error
-			validator.validate_api_keys(tokens or tokens, keys)
-
 			## Get Embeddings and Pinecone Service
 			embeddings = EmbeddingFactory(embedding, tokens.get('OPENAI_API_KEY'))
 			pinecone_service = PineconeService(
