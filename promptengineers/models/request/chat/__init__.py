@@ -45,7 +45,7 @@ class ReqBodyAgentChat(ReqBodyChat):  # pylint: disable=too-few-public-methods
     __config__ = {
 		"json_schema_extra": {
             "example": {
-                "model": "gpt-3.5-turbo",
+                "model": "gpt-3.5-turbo-0125",
                 "temperature": 0.8,
                 "stream": False,
                 "messages": [
