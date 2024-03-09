@@ -15,7 +15,7 @@ setup(
             'langchain==0.0.354',
             'langchain-openai', 
             'openai', 
-            'langsmith==0.0.77',
+            'langsmith==0.0.87',
         ],
         'mongo': [
             'motor', 
