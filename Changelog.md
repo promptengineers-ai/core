@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.0.8-rc.8
+### Changed
+  - feature/97-add-support-for-assistant-starter-query-templates (2024-03-09) 
+
 ## 0.0.8-rc.7
 ### Fixed
   - Updates from development 
