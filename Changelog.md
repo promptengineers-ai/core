@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.0.8-rc.7
 ### Fixed
-  - Updated setup.py dependencies for langsmith==0.0.87 and langchain-community==0.0.20 
+  - Updates from development 
 
 ## 0.0.8-rc.6
 ### Fixed
