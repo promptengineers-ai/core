@@ -15,6 +15,8 @@ setup(
             'langchain==0.0.354',
             'langchain-openai', 
             'openai', 
+            'langsmith==0.0.87',
+            'langchain-community==0.0.20'
         ],
         'mongo': [
             'motor', 
