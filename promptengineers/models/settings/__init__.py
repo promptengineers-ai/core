@@ -6,7 +6,7 @@ from promptengineers.models import Retrieval
 CHAT_SETTINGS = {
 	"title": "Prompt Engineers Core Repository Agent Settings",
     "model": "gpt-3.5-turbo",
-    "system": """You are a helpful assistant. You are equipped with the following tools: {tools} for accomplishing tasks. If you to ask questions to perform a task, you can ask {vectorstore} for assistance.""",
+    "system": """You are a helpful assistant. You are equipped with the following tools: {tools} for accomplishing tasks. If you to ask questions to perform a task, you can ask {index_name} for assistance.""",
     "temperature": 0.5,
 	"stream": True,
     "tools": ["calculator", "github_new_issue", "github_edit_issue", "github_create_pull_request"],
@@ -15,6 +15,16 @@ CHAT_SETTINGS = {
 		"provider": "pinecone",
 		"index_name": "promptengineers-core-repository",
     },
+    "starters": [
+		{
+			"template": """Create an issue for {{issue}}""",
+			"data": {"issue": "fixing bug on the login page"}
+		},
+		{
+			"template": """List my current open issues""",
+			"data": {}
+		},
+    ],
 	"tags": ["core", "repository", "promptengineers"]
 }
 
@@ -31,6 +41,16 @@ CHAT_SETTING_DOCUMENT = {
 		"provider": "pinecone",
 		"index_name": "promptengineers-core-repository",
     },
+    "starters": [
+		{
+			"template": """Create an issue for {{issue}}""",
+			"data": {"issue": "fixing bug on the login page"}
+		},
+		{
+			"template": """List my current open issues""",
+			"data": {}
+		},
+    ],
 	"tags": ["core", "repository", "promptengineers"],
 	"created_at": 1698523723,
 	"updated_at": 1698562747
