@@ -6,7 +6,7 @@ from promptengineers.models import Retrieval
 CHAT_SETTINGS = {
 	"title": "Prompt Engineers Core Repository Agent Settings",
     "model": "gpt-3.5-turbo",
-    "system": """You are a helpful assistant. You are equipped with the following tools: {tools} for accomplishing tasks. If you to ask questions to perform a task, you can ask {vectorstore} for assistance.""",
+    "system": """You are a helpful assistant. You are equipped with the following tools: {tools} for accomplishing tasks. If you to ask questions to perform a task, you can ask {index_name} for assistance.""",
     "temperature": 0.5,
 	"stream": True,
     "tools": ["calculator", "github_new_issue", "github_edit_issue", "github_create_pull_request"],
@@ -15,6 +15,29 @@ CHAT_SETTINGS = {
 		"provider": "pinecone",
 		"index_name": "promptengineers-core-repository",
     },
+    "templates": [
+		{
+			"title": "Create an issue",
+			"template": """Create an issue for {{issue}} and add {{labels}} labels to this issue.""",
+			"variables": [
+				{
+					"name": "issue",
+					"type": "input",
+				},
+				{
+					"name": "labels",
+					"type": "select",
+					"options": ["Backend", "Frontend", "DevOps", "QA"],
+					"multiple": True,
+				},
+			]
+		},
+		{
+			"title": "List issues",
+			"template": """List my current open issues""",
+			"variables": []
+		},
+    ],
 	"tags": ["core", "repository", "promptengineers"]
 }
 
@@ -22,7 +45,8 @@ CHAT_SETTING_DOCUMENT = {
 	"_id": "532e147a126c8e67d951f234",
 	"title": "Prompt Engineers Core Repository Agent Settings",
     "model": "gpt-3.5-turbo",
-    "system": """You are a helpful assistant. You are equipped with the following tools: {tools} for accomplishing tasks. If you to ask questions to perform a task, you can ask {vectorstore} for assistance.""",
+    "system": """You are a helpful assistant. You are equipped with the following tools: {tools} for 
+    			accomplishing tasks. If you to ask questions to perform a task, you can ask {vectorstore} for assistance.""",
     "temperature": 0.5,
 	"stream": True,
     "tools": ["calculator", "github_new_issue", "github_edit_issue", "github_create_pull_request"],
@@ -31,6 +55,29 @@ CHAT_SETTING_DOCUMENT = {
 		"provider": "pinecone",
 		"index_name": "promptengineers-core-repository",
     },
+    "templates": [
+		{
+			"title": "Create an issue",
+			"template": """Create an issue for {{issue}} and add {{labels}} labels to this issue.""",
+			"variables": [
+				{
+					"name": "issue",
+					"type": "input",
+				},
+				{
+					"name": "labels",
+					"type": "select",
+					"options": ["Backend", "Frontend", "DevOps", "QA"],
+					"multiple": True,
+				},
+			]
+		},
+		{
+			"title": "List issues",
+			"template": """List my current open issues""",
+			"variables": []
+		},
+    ],
 	"tags": ["core", "repository", "promptengineers"],
 	"created_at": 1698523723,
 	"updated_at": 1698562747
