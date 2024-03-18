@@ -41,6 +41,7 @@ setup(
             'tiktoken', 
             'nest_asyncio', 
             'beautifulsoup4',
+            'nltk',
             # 'unstructured[all-docs]'
         ],
         'tools': [

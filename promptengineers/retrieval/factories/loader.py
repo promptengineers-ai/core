@@ -64,7 +64,12 @@ class LoaderFactory:
         
         if loader_type == 'gitbook':
             urls = loader_config.get('urls', [])
-            return loader_class(urls=urls[0], load_all_paths=True)
+            return loader_class(web_page=urls[0], load_all_paths=True)
+        
+        # Handling for loaders that require URLs or file paths
+        if loader_type == 'web_base':
+            urls = loader_config.get('urls', [])
+            return loader_class(web_paths=set(urls))
 
         # Handling for loaders that require URLs or file paths
         if loader_type in {'web_base', 'sitemap', 'website', 'urls'}:
