@@ -24,12 +24,7 @@ class RedisService:
 			embedding=self.embeddings
 		)
 
-	def add_docs(
-		self,
-		loaders,
-		chunk_size: int = 1000,
-		chunk_overlap: int = 100,
-	):
+	def add_docs(self, documents: list):
 		docs = []
 		for loader in loaders:
 			docs.extend(loader.load())
@@ -37,7 +32,7 @@ class RedisService:
 		## TODO: Find out why this is needed, wouldn't work before without.
 		os.environ['REDIS_URL'] = self.redis_url
 
-		return self.client.add_documents(split_docs(docs, chunk_size, chunk_overlap))
+		return self.client.add_documents(documents)
 
 	#############################################################
 	## Retrieve Vectors from Existing Index

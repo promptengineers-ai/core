@@ -63,13 +63,11 @@ class PineconeStrategy(VectorStoreStrategy):
     def list(self):
         return self.service.describe_index_stats()
 
-    def add(self, loaders, chunk_size=1000, chunk_overlap=100):
+    def add(self, documents):
         return self.service.from_documents(
-            loaders=loaders,
+            documents=documents,
             embeddings=self.embeddings,
-            namespace=self.namespace,
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap
+            namespace=self.namespace
         )
 
     def load(self):
@@ -102,12 +100,8 @@ class RedisStrategy(VectorStoreStrategy):
     def list(self):
         return self.service.list_indexes()
 
-    def add(self, loaders, chunk_size=1000, chunk_overlap=100):
-        return self.service.add_docs(
-            loaders=loaders,
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap
-        )
+    def add(self, documents):
+        return self.service.add_docs(documents)
 
     def load(self):
         return self.service.from_existing(
@@ -124,8 +118,8 @@ class VectorstoreContext:
     def set_strategy(self, strategy: VectorStoreStrategy):
         self.strategy = strategy
 
-    def add(self, loaders, chunk_size: int = 1000, chunk_overlap: int = 100):
-        return self.strategy.add(loaders, chunk_size, chunk_overlap)
+    def add(self, documents):
+        return self.strategy.add(documents)
 
     def load(self):
         return self.strategy.load()

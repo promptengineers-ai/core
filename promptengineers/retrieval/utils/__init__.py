@@ -107,11 +107,11 @@ async def split_docs(
 			doc.metadata['section'] = index + 1
 			doc.metadata['word_count'] = len(doc.page_content.split())
 			doc.metadata['character_count'] = len(doc.page_content)
-			doc.metadata['splitter'] = {
-				'type': splitter,
-				'chunk_size': chunk_size,
-				'chunk_overlap': chunk_overlap
-			}
+			# doc.metadata['splitter'] = {
+			# 	'type': splitter,
+			# 	'chunk_size': chunk_size,
+			# 	'chunk_overlap': chunk_overlap
+			# }
 			chunks.append(doc)
 		# Calculate progress percentage
 		progress_percentage = (i + 1) / len(pages) * 100

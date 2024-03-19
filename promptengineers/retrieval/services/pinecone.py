@@ -92,18 +92,13 @@ class PineconeService:
     #############################################################
     def from_documents(
 		self,
-		loaders,
+		documents,
 		embeddings,
-		namespace: str,
-		chunk_size: int = 1000,
-		chunk_overlap: int = 100,
+		namespace: str
 	):
-        docs = []
-        for loader in loaders:
-            docs.extend(loader.load())
         self.client()
         return Pinecone.from_documents(
-            split_docs(docs, chunk_size, chunk_overlap),
+            documents,
             embeddings,
             index_name=self.index_name,
             namespace=namespace
