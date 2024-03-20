@@ -35,7 +35,7 @@ class LoaderFactory:
 
     @staticmethod
     def create(
-        loader_type: ('gitbook', 'web_base', 'website', 'youtube', 'polygon', 'ethereum', 'sitemap', 'urls', 'copy', 'txt', 'html', 'md', 'directory', 'csv', 'pdf', 'json', 'pandas', 'readthedocs'), 
+        loader_type: ('gitbook', 'web_base', 'website', 'youtube', 'polygon', 'ethereum', 'sitemap', 'urls', 'copy', 'txt', 'html', 'md', 'directory', 'csv', 'pdf', 'json', 'pandas', 'readthedocs'),  # type: ignore
         loader_config
     ):
         loader_class = LoaderFactory.LOADER_CLASSES.get(loader_type)
@@ -64,10 +64,15 @@ class LoaderFactory:
         
         if loader_type == 'gitbook':
             urls = loader_config.get('urls', [])
-            return loader_class(urls=urls[0], load_all_paths=True)
+            return loader_class(web_page=urls[0], load_all_paths=True)
+        
+        # Handling for loaders that require URLs or file paths
+        if loader_type == 'web_base':
+            urls = loader_config.get('urls', [])
+            return loader_class(web_paths=set(urls))
 
         # Handling for loaders that require URLs or file paths
-        if loader_type in {'web_base', 'sitemap', 'website', 'urls'}:
+        if loader_type in {'sitemap', 'website', 'urls'}:
             urls = loader_config.get('urls', [])
             return loader_class(urls[0])
 

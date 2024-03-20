@@ -56,6 +56,8 @@ async def langchain_stream_retrieval_chat(
 	model: OpenAIModels,
 	temperature: float = 0.9,
 	vectorstore: VectorstoreContext = None,
+	search_type: str = "similiarity",
+	search_kwargs: dict = None,
 	openai_api_key: str = None,
 	ollama_base_url: str = None,
 ) -> AsyncIterable[str]:
@@ -81,7 +83,9 @@ async def langchain_stream_retrieval_chat(
 			system_message=system_message,
 			chat_history=chat_history,
 			vectorstore=vectorstore,
-			callbacks=[callback]
+			callbacks=[callback],
+			search_type=search_type,
+			search_kwargs=search_kwargs
 		)
 		runnable = qa_chain.astream_log(filtered_messages[-1])
 		docs_processed = False

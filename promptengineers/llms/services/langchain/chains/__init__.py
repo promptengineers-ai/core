@@ -67,7 +67,9 @@ class ChainService:
 		vectorstore,
 		system_message,
 		chat_history,
-		callbacks = None
+		callbacks = None,
+		search_type = "similarity",
+		search_kwargs = None,
 	):
 		"""Retrieve a conversation."""
 		memory = ConversationSummaryBufferMemory(llm=self.model,
@@ -83,7 +85,7 @@ class ChainService:
 		return ConversationalRetrievalChain.from_llm(
 			llm=self.model,
 			condense_question_llm=self.model,
-			retriever=vectorstore.as_retriever(),
+			retriever=vectorstore.as_retriever(search_type=search_type, search_kwargs=search_kwargs),
 			memory=memory,
 			combine_docs_chain_kwargs={"prompt": get_retrieval_template(system_message)},
 			return_source_documents=True,

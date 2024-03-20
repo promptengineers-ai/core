@@ -5,9 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.0.8-rc.10
+### Changed
+  - feature/103-allow-search-index-settings-to-persist (2024-03-20)
+
+## 0.0.8-rc.9
+### Changed
+  - feature/101-publish-chunking-status-to-redis (2024-03-19)
+
+## 0.0.8-rc.8
+### Changed
+  - feature/97-add-support-for-assistant-starter-query-templates (2024-03-09) 
+### Fixed
+  - bugfix/98-add-search-type-and-search-kwargs (2024-03-11)
+
 ## 0.0.8-rc.7
 ### Fixed
-  - Updates from development 
+  - Updated setup.py dependencies for langsmith==0.0.87 and langchain-community==0.0.20 
 
 ## 0.0.8-rc.6
 ### Fixed
