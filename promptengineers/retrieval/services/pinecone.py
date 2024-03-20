@@ -4,19 +4,34 @@ from typing import List
 import pinecone
 from langchain.vectorstores import Pinecone
 
-from promptengineers.retrieval.utils import split_docs
+from threading import Lock
 
 class PineconeService:
-    def __init__(self, api_key: str, env: str, index_name: str):
-        self.api_key = api_key
-        self.env = env
-        self.index_name = index_name
+    _instance = None
+    _lock = Lock()  # To ensure thread-safe singleton initialization
 
+    def __new__(cls, api_key: str = None, env: str = None, index_name: str = None):
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super(PineconeService, cls).__new__(cls)
+                # Initialize Pinecone only once
+                cls._instance.initialize(api_key, env, index_name)
+            return cls._instance
+
+    def initialize(self, api_key: str, env: str, index_name: str):
+        if all([api_key, env, index_name]):
+            self.api_key = api_key
+            self.env = env
+            self.index_name = index_name
+            self.client_initialized = False
+        else:
+            raise ValueError("API Key, Environment, and Index Name are required for PineconeService initialization.")
 
     def client(self):
-        pinecone.init(api_key=self.api_key, environment=self.env)
+        if not self.client_initialized:
+            pinecone.init(api_key=self.api_key, environment=self.env)
+            self.client_initialized = True
         return pinecone
-
 
     #############################################################
     ## List Indexes
@@ -103,4 +118,5 @@ class PineconeService:
             index_name=self.index_name,
             namespace=namespace
         )
+
 
