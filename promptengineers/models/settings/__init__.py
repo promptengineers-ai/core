@@ -14,6 +14,13 @@ CHAT_SETTINGS = {
     "retrieval": {
 		"provider": "pinecone",
 		"index_name": "promptengineers-core-repository",
+		"search_type": "similarity",
+		"search_kwargs": {
+			"k": 5,
+			"fetch_k": None,
+			"score_threshold": None,
+			"filter": None,
+		}
     },
     "templates": [
 		{
